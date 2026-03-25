@@ -36,13 +36,18 @@
         </div>
         <div class="row g-3">
             @forelse($featuredCategories as $category)
-                <div class="col-6 col-md-3">
-                    <a href="{{ route('shop.category', $category->slug) }}" class="text-decoration-none">
-                        <div class="fc-category-card h-100 p-3">
-                            <div class="small text-uppercase text-muted mb-2" style="letter-spacing:.6px;">Collection</div>
-                            <h6 class="mb-1 text-dark">{{ $category->name }}</h6>
-                            <small class="text-muted">{{ $category->products_count }} products</small>
-                            <div class="mt-2 small text-dark">Discover Now</div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a href="{{ route('shop.category', $category->slug) }}" class="fc-category-tile fc-hover-zoom h-100">
+                        <div class="fc-media">
+                            <img src="{{ $category->image_url }}" alt="{{ $category->name }}">
+                            <div class="fc-category-tile-label">Category</div>
+                        </div>
+                        <div class="fc-category-tile-body">
+                            <h3 class="fc-category-tile-title">{{ $category->name }}</h3>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <div class="fc-category-tile-meta">{{ $category->products_count }} products</div>
+                                <span class="fc-link-underline small">Shop</span>
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -53,42 +58,13 @@
     </section>
 
     <section class="mb-4 mb-lg-5">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <div class="fc-kaira-banner p-3 h-100">
-                    <h6 class="text-uppercase small mb-1" style="letter-spacing:.7px;">Book an appointment</h6>
-                    <small class="text-muted">Need sizing help? Our team can assist with the right fit.</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="fc-kaira-banner p-3 h-100">
-                    <h6 class="text-uppercase small mb-1" style="letter-spacing:.7px;">Pickup in store</h6>
-                    <small class="text-muted">Fast handover options for local orders in {{ config('store.country') }}.</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="fc-kaira-banner p-3 h-100">
-                    <h6 class="text-uppercase small mb-1" style="letter-spacing:.7px;">Special packaging</h6>
-                    <small class="text-muted">Careful premium packaging for every order request.</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="fc-kaira-banner p-3 h-100">
-                    <h6 class="text-uppercase small mb-1" style="letter-spacing:.7px;">Easy returns</h6>
-                    <small class="text-muted">Simple support flow via WhatsApp for quick assistance.</small>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="mb-4 mb-lg-5">
         <div class="d-flex justify-content-between align-items-center mb-3 fc-home-heading-row">
             <h2 class="fc-section-title h4 mb-0">Featured Products</h2>
             <a href="{{ route('shop') }}">View All Products</a>
         </div>
         <div class="row g-3">
             @forelse($featuredProducts as $product)
-                <div class="col-6 col-md-4 col-lg-3">
+                <div class="col-12 col-md-6 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $product])
                 </div>
             @empty
@@ -104,7 +80,7 @@
         </div>
         <div class="row g-3">
             @forelse($newArrivals as $product)
-                <div class="col-6 col-md-4 col-lg-3">
+                <div class="col-12 col-md-6 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $product])
                 </div>
             @empty

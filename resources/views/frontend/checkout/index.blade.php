@@ -3,7 +3,6 @@
 @section('title', 'Checkout - ' . config('store.name'))
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <h1 class="h3 mb-3">Checkout</h1>
 
     <div class="row g-4">
@@ -58,15 +57,15 @@
                                     <div class="text-muted">{{ $item['size_name'] ?? '-' }} / {{ $item['color_name'] ?? '-' }} x{{ $item['quantity'] }}</div>
                                 </div>
                             </div>
-                            <div>{{ $currencySymbol }}{{ number_format($item['item_total'], 2) }}</div>
+                            <div>{{ config('store.currency_symbol') }}{{ number_format($item['item_total'], 2) }}</div>
                         </div>
                     @endforeach
 
                     <div class="pt-3">
-                        <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ $currencySymbol }}{{ number_format($summary['subtotal'], 2) }}</strong></div>
-                        <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ $currencySymbol }}{{ number_format($summary['discount_total'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ config('store.currency_symbol') }}{{ number_format($summary['subtotal'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ config('store.currency_symbol') }}{{ number_format($summary['discount_total'], 2) }}</strong></div>
                         <hr>
-                        <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ $currencySymbol }}{{ number_format($summary['total'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ config('store.currency_symbol') }}{{ number_format($summary['total'], 2) }}</strong></div>
                     </div>
                 </div>
             </div>

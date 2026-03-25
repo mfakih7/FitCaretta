@@ -3,7 +3,6 @@
 @section('title', 'Coupons')
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">Coupons</h1>
         <a href="{{ route('admin.coupons.create') }}" class="btn btn-primary">Add Coupon</a>
@@ -29,8 +28,8 @@
                     <tr>
                         <td>{{ $coupon->code }}</td>
                         <td class="text-capitalize">{{ $coupon->type }}</td>
-                        <td>{{ $coupon->type === 'percentage' ? ($coupon->value + 0).'%' : $currencySymbol . number_format($coupon->value, 2) }}</td>
-                        <td>{{ $currencySymbol }}{{ number_format($coupon->minimum_order_amount, 2) }}</td>
+                        <td>{{ $coupon->type === 'percentage' ? ($coupon->value + 0).'%' : config('store.currency_symbol') . number_format($coupon->value, 2) }}</td>
+                        <td>{{ config('store.currency_symbol') }}{{ number_format($coupon->minimum_order_amount, 2) }}</td>
                         <td>
                             Used: {{ $coupon->used_count }}
                             <br>

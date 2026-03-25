@@ -66,6 +66,24 @@ class StorefrontController extends Controller
         ]);
     }
 
+    public function newArrivals(Request $request): View
+    {
+        $products = $this->buildCatalogQuery($request)
+            ->where('is_new_arrival', true)
+            ->paginate(12)
+            ->withQueryString();
+
+        $products->setCollection(
+            $this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'))
+        );
+
+        return view('frontend.shop.index', [
+            'title' => 'New Arrivals',
+            'products' => $products,
+            ...$this->filtersData(),
+        ]);
+    }
+
     public function men(Request $request): View
     {
         $request->merge(['gender' => 'men']);

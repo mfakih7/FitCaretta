@@ -12,6 +12,8 @@
                 @method('PUT')
                 @include('admin.products.form', ['product' => $product])
             </form>
+
+            @include('admin.products.gallery-images', ['product' => $product])
         </div>
     </div>
 @endsection

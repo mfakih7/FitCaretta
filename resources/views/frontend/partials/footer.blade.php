@@ -1,5 +1,48 @@
 <footer class="fc-footer mt-5">
     <div class="container">
+        <div class="row g-3 py-4">
+            <div class="col-12 col-md-4">
+                <div class="d-flex gap-3 align-items-start">
+                    <span aria-hidden="true" class="mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 5H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.491-.408L1.01 2H.5a.5.5 0 0 1-.5-.5zM3.14 6l1.25 7h8.19l1.312-7H3.14z"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="fc-eyebrow">Fast shipping</div>
+                        <div class="text-muted small">Carefully packed, delivered quickly.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="d-flex gap-3 align-items-start">
+                    <span aria-hidden="true" class="mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 3a5 5 0 1 0 5 5 .5.5 0 0 1 1 0 6 6 0 1 1-6-6 .5.5 0 0 1 0 1z"/>
+                            <path d="M8 5.5a.5.5 0 0 1 .5.5v2.25l1.5.9a.5.5 0 0 1-.5.86l-1.75-1.05A.5.5 0 0 1 7.5 9V6a.5.5 0 0 1 .5-.5z"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="fc-eyebrow">Easy returns</div>
+                        <div class="text-muted small">Simple support if it’s not perfect.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="d-flex gap-3 align-items-start">
+                    <span aria-hidden="true" class="mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 0c-.69 0-1.2.405-1.387.94-.362 1.02-1.453 1.73-2.69 2.04C2.2 3.43 1 4.56 1 6.13V9c0 3.5 2.75 6.25 7 7 4.25-.75 7-3.5 7-7V6.13c0-1.57-1.2-2.7-2.923-3.15-1.237-.31-2.328-1.02-2.69-2.04C9.2.405 8.69 0 8 0zm0 1c.173 0 .315.1.387.29.47 1.33 1.794 2.19 3.161 2.53C12.94 4.17 14 5.08 14 6.13V9c0 2.97-2.34 5.31-6 5.99C4.34 14.31 2 11.97 2 9V6.13C2 5.08 3.06 4.17 4.452 3.82c1.367-.34 2.691-1.2 3.161-2.53C7.685 1.1 7.827 1 8 1z"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <div class="fc-eyebrow">Secure checkout</div>
+                        <div class="text-muted small">Trusted payment and privacy.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-4 py-5">
             <div class="col-md-4">
                 <div class="mb-3">

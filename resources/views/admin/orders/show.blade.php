@@ -3,7 +3,6 @@
 @section('title', 'Order Details')
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">Order {{ $order->order_number }}</h1>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-secondary">Back</a>
@@ -57,8 +56,8 @@
                         <td>{{ $item->product_name }}</td>
                         <td>{{ $item->size_name ?? '-' }} / {{ $item->color_name ?? '-' }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>{{ $currencySymbol }}{{ number_format((float) $item->discounted_price, 2) }}</td>
-                        <td>{{ $currencySymbol }}{{ number_format((float) $item->line_total, 2) }}</td>
+                        <td>{{ config('store.currency_symbol') }}{{ number_format((float) $item->discounted_price, 2) }}</td>
+                        <td>{{ config('store.currency_symbol') }}{{ number_format((float) $item->line_total, 2) }}</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -66,10 +65,10 @@
 
             <div class="row mt-2">
                 <div class="col-md-4 ms-auto">
-                    <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ $currencySymbol }}{{ number_format((float) $order->subtotal, 2) }}</strong></div>
-                    <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ $currencySymbol }}{{ number_format((float) $order->discount_total, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ config('store.currency_symbol') }}{{ number_format((float) $order->subtotal, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ config('store.currency_symbol') }}{{ number_format((float) $order->discount_total, 2) }}</strong></div>
                     <hr>
-                    <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ $currencySymbol }}{{ number_format((float) $order->total, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ config('store.currency_symbol') }}{{ number_format((float) $order->total, 2) }}</strong></div>
                 </div>
             </div>
         </div>

@@ -4,7 +4,6 @@
 
 @section('content')
     @php
-        $currencySymbol = config('store.currency_symbol', '$');
         $images = collect([$product->main_image_url])
             ->merge($product->images->map(fn($img) => $img->image_url))
             ->filter()
@@ -20,11 +19,13 @@
     <div class="row g-4 mb-5">
         <div class="col-md-6">
             @if($images->isNotEmpty())
-                <img id="main-product-image" src="{{ $images->first() }}" class="img-fluid rounded shadow-sm w-100 mb-2" alt="{{ $product->name }}" style="max-height:520px; object-fit:cover;">
-                <div class="d-flex gap-2 flex-wrap">
+                <img id="main-product-image" src="{{ $images->first() }}" class="fc-product-gallery-main mb-2" alt="{{ $product->name }}">
+                <div class="d-flex flex-wrap fc-product-thumbs">
                     @foreach($images as $img)
                         <button type="button" class="p-0 border-0 bg-transparent product-thumb-btn" data-image="{{ $img }}">
-                            <img src="{{ $img }}" alt="Gallery image" class="rounded border product-thumb-image" style="width:70px; height:70px; object-fit:cover;">
+                            <span class="d-inline-flex align-items-center justify-content-center fc-product-thumb">
+                                <img src="{{ $img }}" alt="Gallery image" class="product-thumb-image">
+                            </span>
                         </button>
                     @endforeach
                 </div>
@@ -37,10 +38,10 @@
             <div class="text-muted mb-2 text-capitalize">{{ $product->gender_target->value }} / {{ $product->category->name }}</div>
 
             @if($pricing['discount'])
-                <div class="fc-price-old">{{ $currencySymbol }}{{ number_format($pricing['base_price'], 2) }}</div>
-                <div class="fc-price-new h4 mb-2">{{ $currencySymbol }}{{ number_format($pricing['effective_price'], 2) }}</div>
+                <div class="fc-price-old">{{ config('store.currency_symbol') }}{{ number_format($pricing['base_price'], 2) }}</div>
+                <div class="fc-price-new h4 mb-2">{{ config('store.currency_symbol') }}{{ number_format($pricing['effective_price'], 2) }}</div>
             @else
-                <div class="fc-price-new h4 mb-2">{{ $currencySymbol }}{{ number_format($pricing['base_price'], 2) }}</div>
+                <div class="fc-price-new h4 mb-2">{{ config('store.currency_symbol') }}{{ number_format($pricing['base_price'], 2) }}</div>
             @endif
 
             @if($product->short_description)
@@ -136,7 +137,7 @@
         <h2 class="h5 mb-3">Related Products</h2>
         <div class="row g-3">
             @forelse($relatedProducts as $related)
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-md-6 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $related])
                 </div>
             @empty

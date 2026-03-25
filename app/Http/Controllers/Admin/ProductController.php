@@ -11,6 +11,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductImage;
 use App\Models\Catalog\ProductType;
 use App\Models\Catalog\Size;
+use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -20,14 +21,19 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::query()
-            ->with(['category:id,name', 'productType:id,name', 'variants:id,product_id,stock_qty,low_stock_threshold'])
-            ->latest('id')
-            ->paginate(15);
+        $q = trim((string) $request->query('q', ''));
 
-        return view('admin.products.index', compact('products'));
+        $products = Product::query()
+            ->withTrashed()
+            ->with(['category:id,name', 'productType:id,name', 'variants:id,product_id,stock_qty,low_stock_threshold'])
+            ->when($q !== '', fn ($query) => $query->where('name', 'like', '%' . $q . '%'))
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.products.index', compact('products', 'q'));
     }
 
     public function create(): View
@@ -41,7 +47,9 @@ class ProductController extends Controller
         $validated['slug'] = $this->generateUniqueSlug($validated['slug'] ?? null, $validated['name']);
         $this->assertNoDuplicateVariantCombinations($validated['variants'] ?? []);
 
-        DB::transaction(function () use ($request, $validated): void {
+        $createdProductId = null;
+
+        DB::transaction(function () use ($request, $validated, &$createdProductId): void {
             $mainImagePath = null;
             if ($request->hasFile('main_image')) {
                 $mainImagePath = $request->file('main_image')->store('products/main', 'public');
@@ -51,13 +59,14 @@ class ProductController extends Controller
                 ...$this->extractProductData($validated),
                 'main_image_path' => $mainImagePath,
             ]);
+            $createdProductId = $product->id;
 
             $this->syncVariants($product, $validated['variants'] ?? []);
             $this->storeGalleryImages($product, $request->file('gallery_images', []));
         });
 
         return redirect()
-            ->route('admin.products.index')
+            ->route('admin.products.edit', ['product' => $createdProductId])
             ->with('success', 'Product created successfully.');
     }
 
@@ -95,7 +104,7 @@ class ProductController extends Controller
         });
 
         return redirect()
-            ->route('admin.products.index')
+            ->route('admin.products.edit', $product)
             ->with('success', 'Product updated successfully.');
     }
 
@@ -111,6 +120,16 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products.edit', $product)
             ->with('success', 'Gallery image deleted successfully.');
+    }
+
+    public function restore(int $product): RedirectResponse
+    {
+        $model = Product::withTrashed()->findOrFail($product);
+        $model->restore();
+
+        return redirect()
+            ->route('admin.products.edit', $model)
+            ->with('success', 'Product restored successfully.');
     }
 
     public function destroy(Product $product): RedirectResponse

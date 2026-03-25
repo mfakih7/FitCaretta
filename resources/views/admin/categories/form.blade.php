@@ -30,8 +30,36 @@
         </select>
     </div>
     <div class="col-12">
-        <label class="form-label">Image Path</label>
-        <input type="text" name="image_path" class="form-control" value="{{ old('image_path', $category?->image_path) }}" placeholder="storage/categories/example.jpg">
+        @php
+            $existingPath = (string) old('image_path', $category?->image_path);
+            $existingUrl = $category?->image_url ?? asset(\App\Models\Catalog\Category::DEFAULT_PLACEHOLDER);
+        @endphp
+        <label class="form-label">Category Image</label>
+        <input type="file" name="image" class="form-control" accept="image/*" id="category-image-input">
+        @error('image')
+            <div class="text-danger small mt-1">{{ $message }}</div>
+        @enderror
+        <div class="form-text">PNG/JPG/WEBP recommended. If you don’t upload a new one, the existing image stays.</div>
+
+        <div class="mt-2">
+            <div class="small text-muted mb-1">Preview</div>
+            <img
+                id="category-image-preview"
+                src="{{ $existingUrl }}"
+                alt="Category image preview"
+                style="width:140px;height:180px;object-fit:contain;object-position:center;border:1px solid #e5e7eb;background:#fafafa;padding:8px;"
+            >
+        </div>
+
+        <div class="mt-3">
+            <label class="form-label">Image Path (legacy/manual)</label>
+            <input type="text" name="image_path" class="form-control" value="{{ $existingPath }}" placeholder="storage/categories/example.jpg or images/placeholders/..."
+            >
+            @error('image_path')
+                <div class="text-danger small mt-1">{{ $message }}</div>
+            @enderror
+            <div class="form-text">Backward compatible: you can still paste an existing path/URL. Uploading a file will override this value.</div>
+        </div>
     </div>
     <div class="col-12">
         <label class="form-label">Description</label>
@@ -43,3 +71,19 @@
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">Cancel</a>
 </div>
+
+<script>
+    (() => {
+        const input = document.getElementById('category-image-input');
+        const preview = document.getElementById('category-image-preview');
+        if (!input || !preview) return;
+
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            preview.src = url;
+        });
+    })();
+</script>

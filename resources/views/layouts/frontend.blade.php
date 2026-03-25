@@ -25,16 +25,19 @@
             --fc-dark: #1f1f1f;
             --fc-muted: #737373;
             --fc-bg: #ffffff;
-            --fc-soft-bg: #f7f7f7;
+            --fc-soft-bg: #f6f5f2;
             --fc-accent: #72aec8;
             --fc-accent-dark: #4585a1;
             --fc-border: #ececec;
+            --fc-border-strong: #dedede;
+            --fc-ink: #111111;
         }
         body {
             font-family: 'Jost', sans-serif;
             background: var(--fc-bg);
             color: #2a2a2a;
         }
+        a { color: inherit; }
         .fc-topbar {
             background: var(--fc-soft-bg);
             border-bottom: 1px solid var(--fc-border);
@@ -83,9 +86,35 @@
             padding-bottom: .55rem;
             padding-left: .75rem;
             padding-right: .75rem;
+            position: relative;
+        }
+        .fc-navbar .nav-link::after {
+            content: '';
+            position: absolute;
+            left: .75rem;
+            right: .75rem;
+            bottom: .35rem;
+            height: 1px;
+            background: currentColor;
+            opacity: .45;
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform .18s ease, opacity .18s ease;
+        }
+        .fc-navbar .nav-link:hover::after,
+        .fc-navbar .nav-link:focus::after {
+            transform: scaleX(1);
+            opacity: .45;
+        }
+        .fc-navbar .nav-link.active::after,
+        .fc-navbar .nav-link[aria-current="page"]::after {
+            transform: scaleX(1);
+            opacity: .9;
         }
         .fc-navbar .nav-link:hover,
         .fc-navbar .nav-link:focus { color: var(--fc-accent-dark); }
+        .fc-navbar .nav-link.active,
+        .fc-navbar .nav-link[aria-current="page"] { color: var(--fc-ink); }
         .fc-nav-actions {
             min-width: 280px;
             justify-content: flex-end;
@@ -133,16 +162,127 @@
             text-transform: uppercase;
             font-size: 1.25rem;
         }
+        /* Premium minimal system (scoped to fc-* only) */
+        .fc-section { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+        .fc-soft-surface { background: var(--fc-soft-bg); border: 1px solid var(--fc-border); }
+        .fc-eyebrow {
+            font-size: .72rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--fc-muted);
+        }
+        .fc-link-underline {
+            text-decoration: none;
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 2px;
+        }
+        .fc-media {
+            position: relative;
+            overflow: hidden;
+            background: #f2f2f2;
+        }
+        .fc-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1);
+            transition: transform .35s ease;
+        }
+        .fc-hover-zoom:hover .fc-media img { transform: scale(1.045); }
+
+        /* Category tiles */
+        .fc-category-tile {
+            border: 1px solid var(--fc-border);
+            background: #fff;
+            display: block;
+            text-decoration: none;
+            color: var(--fc-ink);
+        }
+        .fc-category-tile .fc-media {
+            aspect-ratio: 4 / 5;
+            background: var(--fc-soft-bg);
+        }
+        /* Categories often have mixed image dimensions; contain looks cleaner than aggressive cropping. */
+        .fc-category-tile .fc-media img {
+            object-fit: contain;
+            object-position: center;
+            padding: 14px;
+        }
+        .fc-category-tile.fc-hover-zoom:hover .fc-media img { transform: scale(1.02); }
+        .fc-category-tile-label {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .35rem .55rem;
+            border: 1px solid rgba(255,255,255,.55);
+            background: rgba(17,17,17,.35);
+            color: #fff;
+            font-size: .72rem;
+            letter-spacing: .11em;
+            text-transform: uppercase;
+            backdrop-filter: blur(6px);
+        }
+        .fc-category-tile-body { padding: 14px; }
+        .fc-category-tile-title {
+            font-size: 1.02rem;
+            letter-spacing: .2px;
+            margin: 0;
+            color: var(--fc-ink);
+        }
+        .fc-category-tile-meta { color: var(--fc-muted); font-size: .88rem; }
+
+        /* Product tiles */
         .fc-product-card {
             border: 1px solid var(--fc-border);
             border-radius: 0;
-            transition: transform .2s ease, box-shadow .2s ease;
+            background: #fff;
+            transition: border-color .2s ease, transform .2s ease;
         }
-        .fc-product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,.08);
+        .fc-product-card:hover { transform: translateY(-1px); border-color: var(--fc-border-strong); }
+        .fc-product-card .fc-media {
+            aspect-ratio: 4 / 5;
+            background: var(--fc-soft-bg);
         }
-        .fc-product-card img { height: 260px; object-fit: cover; border-radius: 0; }
+        /* Product images: keep a consistent frame, avoid awkward crops for mixed assets */
+        .fc-product-card .fc-media img {
+            object-fit: contain;
+            object-position: center;
+            padding: 10px;
+        }
+        .fc-product-card.fc-hover-zoom:hover .fc-media img { transform: scale(1.02); }
+        .fc-product-title {
+            font-size: .95rem;
+            font-weight: 500;
+            line-height: 1.2;
+            margin: 0;
+            color: var(--fc-ink);
+        }
+        .fc-product-sub { font-size: .82rem; color: var(--fc-muted); }
+        .fc-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: .25rem .5rem;
+            border: 1px solid var(--fc-border);
+            background: #fff;
+            font-size: .7rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--fc-ink);
+        }
+        .fc-badge-dark { border-color: rgba(255,255,255,.55); background: rgba(17,17,17,.35); color: #fff; backdrop-filter: blur(6px); }
+        .fc-badges {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+
         .fc-price-old { text-decoration: line-through; color: #9a9a9a; font-size: .9rem; }
         .fc-price-new { font-weight: 700; color: #111; }
         .fc-pill {
@@ -192,6 +332,48 @@
         }
         .product-thumb-image { transition: all .2s ease; }
         .product-thumb-btn:hover .product-thumb-image { transform: scale(1.04); }
+
+        /* Product details gallery */
+        .fc-product-gallery-main {
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            background: var(--fc-soft-bg);
+            border: 1px solid var(--fc-border);
+            object-fit: contain;
+            object-position: center;
+            padding: 14px;
+        }
+        .fc-product-thumbs { gap: .6rem; }
+        .fc-product-thumb {
+            width: 74px;
+            height: 74px;
+            border: 1px solid var(--fc-border);
+            background: var(--fc-soft-bg);
+            padding: 6px;
+        }
+        .fc-product-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+        .product-thumb-image.border-primary.border-2 { border-color: var(--fc-ink) !important; }
+
+        /* Pagination */
+        .pagination { gap: .35rem; }
+        .page-link {
+            border-radius: 0 !important;
+            border: 1px solid var(--fc-border);
+            color: var(--fc-ink);
+            padding: .5rem .75rem;
+        }
+        .page-link:hover { border-color: var(--fc-border-strong); color: var(--fc-ink); background: #fff; }
+        .page-item.active .page-link {
+            background: var(--fc-ink);
+            border-color: var(--fc-ink);
+            color: #fff;
+        }
+        .page-item.disabled .page-link { color: #9b9b9b; background: #fff; }
         .fc-footer {
             background: #ffffff;
             border-top: 1px solid var(--fc-border);

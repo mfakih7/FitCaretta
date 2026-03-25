@@ -3,7 +3,6 @@
 @section('title', 'Cart - ' . config('store.name'))
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Your Cart</h1>
         @if($items->isNotEmpty())
@@ -47,9 +46,9 @@
                             <td>{{ $item['size_name'] ?? '-' }} / {{ $item['color_name'] ?? '-' }}</td>
                             <td>
                                 @if($item['discounted_price'] < $item['base_price'])
-                                    <div class="small text-muted text-decoration-line-through">{{ $currencySymbol }}{{ number_format($item['base_price'], 2) }}</div>
+                                    <div class="small text-muted text-decoration-line-through">{{ config('store.currency_symbol') }}{{ number_format($item['base_price'], 2) }}</div>
                                 @endif
-                                <div class="fw-semibold">{{ $currencySymbol }}{{ number_format($item['discounted_price'], 2) }}</div>
+                                <div class="fw-semibold">{{ config('store.currency_symbol') }}{{ number_format($item['discounted_price'], 2) }}</div>
                             </td>
                             <td>
                                 <form method="POST" action="{{ route('cart.update', $item['key']) }}" class="d-flex gap-2">
@@ -60,7 +59,7 @@
                                 </form>
                                 <div class="small text-muted mt-1">Stock: {{ $item['stock_qty'] }}</div>
                             </td>
-                            <td class="fw-semibold">{{ $currencySymbol }}{{ number_format($item['item_total'], 2) }}</td>
+                            <td class="fw-semibold">{{ config('store.currency_symbol') }}{{ number_format($item['item_total'], 2) }}</td>
                             <td class="text-end">
                                 <form method="POST" action="{{ route('cart.destroy', $item['key']) }}">
                                     @csrf
@@ -79,10 +78,10 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 ms-auto">
-                        <div class="d-flex justify-content-between mb-1"><span>Subtotal</span><strong>{{ $currencySymbol }}{{ number_format($summary['subtotal'], 2) }}</strong></div>
-                        <div class="d-flex justify-content-between mb-1"><span>Discount</span><strong class="text-success">-{{ $currencySymbol }}{{ number_format($summary['discount_total'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between mb-1"><span>Subtotal</span><strong>{{ config('store.currency_symbol') }}{{ number_format($summary['subtotal'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between mb-1"><span>Discount</span><strong class="text-success">-{{ config('store.currency_symbol') }}{{ number_format($summary['discount_total'], 2) }}</strong></div>
                         <hr>
-                        <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ $currencySymbol }}{{ number_format($summary['total'], 2) }}</strong></div>
+                        <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ config('store.currency_symbol') }}{{ number_format($summary['total'], 2) }}</strong></div>
                         <a href="{{ route('checkout.index') }}" class="btn btn-dark w-100 mt-3 py-2">
                             Proceed to Checkout
                         </a>

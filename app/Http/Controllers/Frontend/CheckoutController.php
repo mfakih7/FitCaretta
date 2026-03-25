@@ -42,10 +42,11 @@ class CheckoutController extends Controller
         /** @var \App\Models\Sales\Order $order */
         $order = $result['order'];
         $emailSent = (bool) ($result['email_sent'] ?? false);
+        $adminEmailSent = (bool) ($result['admin_email_sent'] ?? true);
 
         $redirect = redirect()->route('orders.success', $order->public_token);
-        if (! $emailSent) {
-            $redirect->with('warning', 'Order placed successfully, but confirmation email could not be sent right now.');
+        if (! $emailSent || ! $adminEmailSent) {
+            $redirect->with('warning', 'Order placed successfully, but email notifications could not be sent right now.');
         }
 
         return $redirect;

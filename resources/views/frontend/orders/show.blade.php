@@ -3,7 +3,6 @@
 @section('title', 'Order ' . $order->order_number . ' - ' . config('store.name'))
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             <h1 class="h4 mb-1">Order Details</h1>
@@ -15,16 +14,16 @@
                         <div>{{ $item->product_name }}</div>
                         <small class="text-muted">{{ $item->size_name ?? '-' }} / {{ $item->color_name ?? '-' }} x{{ $item->quantity }}</small>
                     </div>
-                    <div>{{ $currencySymbol }}{{ number_format((float) $item->line_total, 2) }}</div>
+                    <div>{{ config('store.currency_symbol') }}{{ number_format((float) $item->line_total, 2) }}</div>
                 </div>
             @endforeach
 
             <div class="row mt-4">
                 <div class="col-md-5 ms-auto">
-                    <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ $currencySymbol }}{{ number_format((float) $order->subtotal, 2) }}</strong></div>
-                    <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ $currencySymbol }}{{ number_format((float) $order->discount_total, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Subtotal</span><strong>{{ config('store.currency_symbol') }}{{ number_format((float) $order->subtotal, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Discount</span><strong class="text-success">-{{ config('store.currency_symbol') }}{{ number_format((float) $order->discount_total, 2) }}</strong></div>
                     <hr>
-                    <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ $currencySymbol }}{{ number_format((float) $order->total, 2) }}</strong></div>
+                    <div class="d-flex justify-content-between"><span class="fw-semibold">Total</span><strong class="fs-5">{{ config('store.currency_symbol') }}{{ number_format((float) $order->total, 2) }}</strong></div>
                 </div>
             </div>
 

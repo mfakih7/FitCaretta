@@ -2,8 +2,10 @@
 
 namespace App\Services\Order;
 
+use App\Mail\NewOrderReceivedMail;
 use App\Mail\OrderConfirmationMail;
 use App\Models\Catalog\ProductVariant;
+use App\Models\Sales\Customer;
 use App\Models\Sales\Order;
 use App\Services\Cart\CartService;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +32,43 @@ class OrderService
         $summary = $this->cartService->summary();
 
         $order = DB::transaction(function () use ($customerData, $summary, $items) {
+            $normalizedPhone = preg_replace('/\D+/', '', (string) ($customerData['phone'] ?? ''));
+            if (! $normalizedPhone) {
+                throw ValidationException::withMessages([
+                    'phone' => 'Please provide a valid phone number.',
+                ]);
+            }
+
+            $customer = Customer::query()->where('phone', $normalizedPhone)->first();
+            if (! $customer) {
+                $customer = Customer::create([
+                    'full_name' => $customerData['full_name'],
+                    'email' => $customerData['email'] ?? null,
+                    'phone' => $normalizedPhone,
+                    'city_area' => $customerData['city'] ?? null,
+                    'address' => $customerData['address'] ?? null,
+                ]);
+            } else {
+                $update = [];
+                if (! filled($customer->full_name) && filled($customerData['full_name'] ?? null)) {
+                    $update['full_name'] = $customerData['full_name'];
+                }
+                if (! filled($customer->email) && filled($customerData['email'] ?? null)) {
+                    $update['email'] = $customerData['email'];
+                }
+                if (! filled($customer->city_area) && filled($customerData['city'] ?? null)) {
+                    $update['city_area'] = $customerData['city'];
+                }
+                if (! filled($customer->address) && filled($customerData['address'] ?? null)) {
+                    $update['address'] = $customerData['address'];
+                }
+                if ($update) {
+                    $customer->update($update);
+                }
+            }
+
             $order = Order::create([
+                'customer_id' => $customer->id,
                 'order_number' => $this->generateOrderNumber(),
                 'public_token' => Str::random(48),
                 'full_name' => $customerData['full_name'],
@@ -97,22 +135,73 @@ class OrderService
 
         $this->cartService->clear();
 
-        $emailSent = true;
+        $customerEmailSent = true;
         try {
-            Mail::to($order->email)->send(new OrderConfirmationMail($order));
+            if (filled($order->email)) {
+                Log::info('Attempting customer confirmation email', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'to' => $order->email,
+                    'mailer' => (string) config('mail.default'),
+                    'host' => (string) config('mail.mailers.smtp.host'),
+                    'port' => (string) config('mail.mailers.smtp.port'),
+                    'encryption' => (string) config('mail.mailers.smtp.encryption'),
+                    'from' => (string) config('mail.from.address'),
+                ]);
+                Mail::to($order->email)->send(new OrderConfirmationMail($order));
+                Log::info('Customer confirmation email sent', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'to' => $order->email,
+                ]);
+            }
         } catch (\Throwable $e) {
-            $emailSent = false;
+            $customerEmailSent = false;
             Log::error('Order confirmation email failed', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'email' => $order->email,
+                'exception' => get_class($e),
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        $adminEmailSent = true;
+        try {
+            $adminAddress = (string) config('store.contact_email', '');
+            if ($adminAddress !== '') {
+                Log::info('Attempting admin new-order email', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'to' => $adminAddress,
+                    'mailer' => (string) config('mail.default'),
+                    'host' => (string) config('mail.mailers.smtp.host'),
+                    'port' => (string) config('mail.mailers.smtp.port'),
+                    'encryption' => (string) config('mail.mailers.smtp.encryption'),
+                    'from' => (string) config('mail.from.address'),
+                ]);
+                Mail::to($adminAddress)->send(new NewOrderReceivedMail($order));
+                Log::info('Admin new-order email sent', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'to' => $adminAddress,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            $adminEmailSent = false;
+            Log::error('New order admin email failed', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'email' => (string) config('store.contact_email', ''),
+                'exception' => get_class($e),
                 'error' => $e->getMessage(),
             ]);
         }
 
         return [
             'order' => $order,
-            'email_sent' => $emailSent,
+            'email_sent' => $customerEmailSent,
+            'admin_email_sent' => $adminEmailSent,
         ];
     }
 
@@ -120,13 +209,12 @@ class OrderService
     {
         $number = preg_replace('/\D+/', '', (string) config('store.whatsapp_number', ''));
         $storeName = (string) config('store.name', 'FitCaretta');
-        $currencySymbol = (string) config('store.currency_symbol', '$');
         $items = $order->items->take(4)->map(fn ($i) => "- {$i->product_name} x{$i->quantity}")->implode("\n");
 
         $message = "Hello {$storeName},\n"
             . "My name is {$order->full_name}.\n"
             . "Order Number: {$order->order_number}\n"
-            . "Total: {$currencySymbol}" . number_format((float) $order->total, 2) . "\n"
+            . "Total: " . config('store.currency_symbol') . number_format((float) $order->total, 2) . "\n"
             . "Items:\n{$items}\n"
             . "Please confirm my order. Thank you.";
 

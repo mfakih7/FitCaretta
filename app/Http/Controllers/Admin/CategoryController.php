@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\CategoryStoreRequest;
 use App\Http\Requests\Admin\CategoryUpdateRequest;
 use App\Models\Catalog\Category;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -32,7 +33,13 @@ class CategoryController extends Controller
 
     public function store(CategoryStoreRequest $request): RedirectResponse
     {
-        Category::create($request->validated());
+        $payload = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $payload['image_path'] = $request->file('image')->store('categories', 'public');
+        }
+
+        Category::create($payload);
 
         return redirect()
             ->route('admin.categories.index')
@@ -51,7 +58,21 @@ class CategoryController extends Controller
 
     public function update(CategoryUpdateRequest $request, Category $category): RedirectResponse
     {
-        $category->update($request->validated());
+        $payload = $request->validated();
+
+        if ($request->hasFile('image')) {
+            if ($category->image_path && Storage::disk('public')->exists($category->image_path)) {
+                Storage::disk('public')->delete($category->image_path);
+            }
+
+            $payload['image_path'] = $request->file('image')->store('categories', 'public');
+        } else {
+            if (! array_key_exists('image_path', $payload) || (string) $payload['image_path'] === '') {
+                unset($payload['image_path']);
+            }
+        }
+
+        $category->update($payload);
 
         return redirect()
             ->route('admin.categories.index')

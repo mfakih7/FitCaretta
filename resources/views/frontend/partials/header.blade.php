@@ -16,11 +16,21 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ route('shop') }}">Shop</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('shop.men') }}">Men</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('shop.women') }}">Women</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('shop') }}">New Arrivals</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('offers') }}">Offers</a></li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop')) active @endif" href="{{ route('shop') }}" @if(request()->routeIs('shop')) aria-current="page" @endif>Shop</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.men')) active @endif" href="{{ route('shop.men') }}" @if(request()->routeIs('shop.men')) aria-current="page" @endif>Men</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.women')) active @endif" href="{{ route('shop.women') }}" @if(request()->routeIs('shop.women')) aria-current="page" @endif>Women</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.new')) active @endif" href="{{ route('shop.new') }}" @if(request()->routeIs('shop.new')) aria-current="page" @endif>New Arrivals</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('offers')) active @endif" href="{{ route('offers') }}" @if(request()->routeIs('offers')) aria-current="page" @endif>Offers</a>
+                </li>
             </ul>
             <div class="d-flex align-items-center gap-2 fc-nav-actions">
                 <form class="d-flex align-items-center gap-2" role="search" method="GET" action="{{ route('search') }}">

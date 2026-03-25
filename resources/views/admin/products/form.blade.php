@@ -61,7 +61,12 @@
     <div class="col-md-3">
         <label class="form-label">Main Image</label>
         <input type="file" name="main_image" class="form-control" accept="image/*">
-        <img src="{{ $product?->main_image_url ?? asset(\App\Models\Catalog\Product::DEFAULT_PLACEHOLDER) }}" alt="Main image" class="img-thumbnail mt-2" style="max-height: 120px;">
+        <img
+            src="{{ ($product?->main_image_url ?? asset(\App\Models\Catalog\Product::DEFAULT_PLACEHOLDER)) . ($product?->updated_at ? ('?v=' . $product->updated_at->timestamp) : '') }}"
+            alt="Main image"
+            class="img-thumbnail mt-2"
+            style="max-height: 120px;"
+        >
     </div>
     <div class="col-md-3">
         <label class="form-label">Gallery Images</label>
@@ -75,23 +80,6 @@
         <label class="form-label">Description</label>
         <textarea name="description" rows="4" class="form-control">{{ old('description', $product?->description) }}</textarea>
     </div>
-    @if($product?->images?->count())
-        <div class="col-12">
-            <label class="form-label">Existing Gallery Images</label>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach($product->images as $image)
-                    <div class="border rounded p-1 bg-white">
-                        <img src="{{ $image->image_url }}" alt="Gallery image" class="img-thumbnail d-block mb-1" style="height: 80px;">
-                        <form method="POST" action="{{ route('admin.products.gallery-images.destroy', [$product, $image]) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this gallery image?')">Delete</button>
-                        </form>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
     <div class="col-md-6">
         <label class="form-label">Meta Title</label>
         <input type="text" name="meta_title" class="form-control" value="{{ old('meta_title', $product?->meta_title) }}">

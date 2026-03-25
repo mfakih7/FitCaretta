@@ -103,10 +103,13 @@
                 <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action">Product Types</a>
                 <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action">Sizes</a>
                 <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action">Colors</a>
+                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action">Customers</a>
                 <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action">Products</a>
                 <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action">Discounts</a>
                 <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action">Coupons</a>
                 <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action">Orders</a>
+                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action">Reports</a>
+                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action">Settings</a>
             </div>
         </aside>
         <main class="col-lg-10 p-4 fc-admin-content">

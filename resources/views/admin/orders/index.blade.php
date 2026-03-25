@@ -3,9 +3,30 @@
 @section('title', 'Orders')
 
 @section('content')
-    @php($currencySymbol = config('store.currency_symbol', '$'))
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Orders</h1>
+        <div>
+            <h1 class="h4 mb-0">Orders</h1>
+            @if($orders->total() > $orders->count())
+                <div class="text-muted small">Showing {{ $orders->count() }} of {{ $orders->total() }}</div>
+            @else
+                <div class="text-muted small">{{ $orders->total() }} total</div>
+            @endif
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.orders.index') }}" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label small mb-1">Search</label>
+                    <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Order number or customer name...">
+                </div>
+                <div class="col-md-6 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="card shadow-sm">
@@ -29,7 +50,7 @@
                             <div>{{ $order->full_name }}</div>
                             <small class="text-muted">{{ $order->email }}</small>
                         </td>
-                        <td>{{ $currencySymbol }}{{ number_format((float) $order->total, 2) }}</td>
+                        <td>{{ config('store.currency_symbol') }}{{ number_format((float) $order->total, 2) }}</td>
                         <td><span class="badge bg-secondary text-capitalize">{{ $order->order_status }}</span></td>
                         <td>{{ $order->placed_at?->format('Y-m-d H:i') ?? '-' }}</td>
                         <td class="text-end">

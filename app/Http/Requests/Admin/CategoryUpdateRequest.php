@@ -40,6 +40,7 @@ class CategoryUpdateRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'image_path' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'is_active' => ['required', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
