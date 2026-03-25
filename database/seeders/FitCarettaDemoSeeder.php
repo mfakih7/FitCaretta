@@ -12,6 +12,7 @@ use App\Models\Catalog\ProductImage;
 use App\Models\Catalog\ProductType;
 use App\Models\Catalog\ProductVariant;
 use App\Models\Catalog\Size;
+use App\Models\Setting;
 use App\Models\Sales\Order;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -143,7 +144,7 @@ class FitCarettaDemoSeeder extends Seeder
             $sku = 'FC-' . strtoupper(Str::substr(Str::slug($item['name'], ''), 0, 4)) . str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT);
             $mainPath = $this->ensureDemoImage($slug, $item['name'], false);
 
-            $product = Product::query()->updateOrCreate(
+            $product = Product::query()->withTrashed()->updateOrCreate(
                 ['slug' => $slug],
                 [
                     'category_id' => $category->id,
@@ -163,6 +164,10 @@ class FitCarettaDemoSeeder extends Seeder
                     'meta_description' => 'Shop ' . $item['name'] . ' at ' . config('store.name', 'FitCaretta') . ' ' . config('store.country', 'Lebanon') . '.',
                 ]
             );
+
+            if (method_exists($product, 'trashed') && $product->trashed()) {
+                $product->restore();
+            }
 
             $product->images()->delete();
             ProductImage::query()->create([
@@ -367,24 +372,29 @@ class FitCarettaDemoSeeder extends Seeder
             return;
         }
 
+        // Seed a small set of store.* keys (idempotent) for the Admin Settings feature.
+        // Values are stored as overrides; delete the row to fallback to config defaults.
         $settings = [
-            ['key' => 'store_name', 'value' => config('store.name', 'FitCaretta'), 'type' => 'string'],
-            ['key' => 'store_logo_text', 'value' => config('store.name', 'FitCaretta'), 'type' => 'string'],
-            ['key' => 'store_whatsapp_number', 'value' => config('store.whatsapp_number', '+96170111222'), 'type' => 'string'],
-            ['key' => 'store_contact_email', 'value' => config('store.contact_email', 'support@fitcaretta.com'), 'type' => 'string'],
-            ['key' => 'store_address', 'value' => config('store.address', 'Beirut, Lebanon'), 'type' => 'string'],
-            ['key' => 'store_currency', 'value' => config('store.currency_code', 'USD'), 'type' => 'string'],
+            'store.name' => (string) config('store.name', 'FitCaretta'),
+            'store.tagline' => (string) config('store.tagline', ''),
+            'store.contact_email' => (string) config('store.contact_email', ''),
+            'store.support_email' => (string) config('store.support_email', ''),
+            'store.phone' => (string) config('store.phone', ''),
+            'store.whatsapp_number' => (string) config('store.whatsapp_number', ''),
+            'store.address' => (string) config('store.address', ''),
+            'store.country' => (string) config('store.country', ''),
+            'store.city' => (string) config('store.city', ''),
+            'store.currency_code' => (string) config('store.currency_code', 'USD'),
+            'store.currency_symbol' => (string) config('store.currency_symbol', '$'),
+            'store.brand.logo_primary_path' => (string) config('store.brand.logo_primary_path', ''),
+            'store.brand.logo_mark_path' => (string) config('store.brand.logo_mark_path', ''),
+            'store.brand.favicon_path' => (string) config('store.brand.favicon_path', ''),
         ];
 
-        foreach ($settings as $setting) {
-            DB::table('settings')->updateOrInsert(
-                ['key' => $setting['key']],
-                [
-                    'value' => $setting['value'],
-                    'type' => $setting['type'],
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ]
+        foreach ($settings as $key => $value) {
+            Setting::query()->updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
             );
         }
     }
