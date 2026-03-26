@@ -48,6 +48,16 @@
             background: var(--fc-admin-surface);
             border-right: 1px solid var(--fc-admin-border);
         }
+        .sidebar-menu .list-group-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-menu .list-group-item i {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.9;
+        }
         .fc-admin-sidebar .list-group-item {
             border: 0;
             border-radius: 8px;
@@ -98,18 +108,40 @@
 <div class="container-fluid fc-admin-layout">
     <div class="row">
         <aside class="col-lg-2 fc-admin-sidebar min-vh-100 p-3">
-            <div class="list-group list-group-flush">
-                <a href="{{ route('admin.categories.index') }}" class="list-group-item list-group-item-action">Categories</a>
-                <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action">Product Types</a>
-                <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action">Sizes</a>
-                <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action">Colors</a>
-                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action">Customers</a>
-                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action">Products</a>
-                <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action">Discounts</a>
-                <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action">Coupons</a>
-                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action">Orders</a>
-                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action">Reports</a>
-                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action">Settings</a>
+            <div class="list-group list-group-flush sidebar-menu">
+                <a href="{{ route('admin.categories.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="layers"></i><span>Categories</span>
+                </a>
+                <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="box"></i><span>Product Types</span>
+                </a>
+                <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="ruler"></i><span>Sizes</span>
+                </a>
+                <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="palette"></i><span>Colors</span>
+                </a>
+                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="users"></i><span>Customers</span>
+                </a>
+                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="shopping-bag"></i><span>Products</span>
+                </a>
+                <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="percent"></i><span>Discounts</span>
+                </a>
+                <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="ticket"></i><span>Coupons</span>
+                </a>
+                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="receipt"></i><span>Orders</span>
+                </a>
+                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="bar-chart-3"></i><span>Reports</span>
+                </a>
+                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action">
+                    <i data-lucide="settings"></i><span>Settings</span>
+                </a>
             </div>
         </aside>
         <main class="col-lg-10 p-4 fc-admin-content">
@@ -120,5 +152,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
 </body>
 </html>
