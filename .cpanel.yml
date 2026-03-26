@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export APPPATH=/home/fitcbfra/FitCaretta-main
+    - export PUBLICPATH=/home/fitcbfra/public_html
+
+    - /bin/cp -R public/* $PUBLICPATH
+    - /bin/cp deploy/index.php $PUBLICPATH/index.php
+    - /bin/cp deploy/.htaccess $PUBLICPATH/.htaccess
