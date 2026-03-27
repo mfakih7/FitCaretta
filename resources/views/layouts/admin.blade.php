@@ -53,9 +53,11 @@
             align-items: center;
             gap: 10px;
         }
-        .sidebar-menu .list-group-item i {
+        .sidebar-menu .list-group-item i,
+        .sidebar-menu .list-group-item svg {
             width: 18px;
             height: 18px;
+            flex-shrink: 0;
             stroke-width: 1.9;
         }
         .fc-admin-sidebar .list-group-item {
@@ -69,6 +71,21 @@
         .fc-admin-sidebar .list-group-item:focus {
             background: #eef2ff;
             color: #1d4ed8;
+        }
+        .fc-admin-sidebar .list-group-item.active {
+            background: #e0e7ff;
+            color: #1d4ed8;
+        }
+        .fc-admin-sidebar .sidebar-section-label {
+            padding: .85rem .75rem .35rem;
+            font-size: .72rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--fc-admin-muted);
+            font-weight: 600;
+        }
+        .fc-admin-sidebar .sidebar-section-label:first-child {
+            padding-top: .25rem;
         }
         .fc-admin-content .card {
             border: 1px solid var(--fc-admin-border);
@@ -109,38 +126,50 @@
     <div class="row">
         <aside class="col-lg-2 fc-admin-sidebar min-vh-100 p-3">
             <div class="list-group list-group-flush sidebar-menu">
-                <a href="{{ route('admin.categories.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="layers"></i><span>Categories</span>
-                </a>
-                <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="box"></i><span>Product Types</span>
-                </a>
-                <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="ruler"></i><span>Sizes</span>
-                </a>
-                <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="palette"></i><span>Colors</span>
-                </a>
-                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="users"></i><span>Customers</span>
-                </a>
-                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action">
+                <div class="sidebar-section-label">Catalog</div>
+                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                     <i data-lucide="shopping-bag"></i><span>Products</span>
                 </a>
-                <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="percent"></i><span>Discounts</span>
+                <a href="{{ route('admin.categories.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                    <i data-lucide="layers"></i><span>Categories</span>
                 </a>
-                <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action">
-                    <i data-lucide="ticket"></i><span>Coupons</span>
+                <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.product-types.*') ? 'active' : '' }}">
+                    <i data-lucide="box"></i><span>Product Types</span>
                 </a>
-                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action">
+                <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.sizes.*') ? 'active' : '' }}">
+                    <i data-lucide="ruler"></i><span>Sizes</span>
+                </a>
+                <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.colors.*') ? 'active' : '' }}">
+                    <i data-lucide="palette"></i><span>Colors</span>
+                </a>
+
+                <div class="sidebar-section-label">Sales</div>
+                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                     <i data-lucide="receipt"></i><span>Orders</span>
                 </a>
-                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action">
+                <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
+                    <i data-lucide="percent"></i><span>Discounts</span>
+                </a>
+                <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+                    <i data-lucide="ticket"></i><span>Coupons</span>
+                </a>
+
+                <div class="sidebar-section-label">Customers</div>
+                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
+                    <i data-lucide="users"></i><span>Customers</span>
+                </a>
+
+                <div class="sidebar-section-label">Analytics</div>
+                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                     <i data-lucide="bar-chart-3"></i><span>Reports</span>
                 </a>
-                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action">
+
+                <div class="sidebar-section-label">System</div>
+                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i data-lucide="settings"></i><span>Settings</span>
+                </a>
+                <a href="{{ route('admin.profile.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                    <i data-lucide="user"></i><span>Profile</span>
                 </a>
             </div>
         </aside>
