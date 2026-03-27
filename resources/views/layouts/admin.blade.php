@@ -160,6 +160,9 @@
                 </a>
 
                 <div class="sidebar-section-label">Analytics</div>
+                <a href="{{ route('admin.homepage-slides.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.homepage-slides.*') ? 'active' : '' }}">
+                    <i data-lucide="sliders-horizontal"></i><span>Homepage Slides</span>
+                </a>
                 <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                     <i data-lucide="bar-chart-3"></i><span>Reports</span>
                 </a>

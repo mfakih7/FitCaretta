@@ -9,6 +9,7 @@ use App\Models\Catalog\Discount;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductType;
 use App\Models\Catalog\Size;
+use App\Models\HomepageSlide;
 use App\Services\Pricing\DiscountResolverService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -23,6 +24,12 @@ class StorefrontController extends Controller
 
     public function home(): View
     {
+        $slides = HomepageSlide::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->get();
+
         $featuredProducts = $this->attachPricing(
             Product::query()
                 ->with(['category:id,name', 'images:id,product_id,image_path,sort_order'])
@@ -51,7 +58,7 @@ class StorefrontController extends Controller
             ->limit(8)
             ->get();
 
-        return view('frontend.home', compact('featuredProducts', 'newArrivals', 'featuredCategories'));
+        return view('frontend.home', compact('slides', 'featuredProducts', 'newArrivals', 'featuredCategories'));
     }
 
     public function shop(Request $request): View
