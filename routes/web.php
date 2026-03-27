@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\HomepageSlideController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductTypeController;
 use App\Http\Controllers\Admin\Reports\OrdersReportController;
@@ -102,6 +103,8 @@ Route::prefix('admin')
 
             Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+
+            Route::resource('homepage-slides', HomepageSlideController::class)->except(['show']);
 
             Route::resource('categories', CategoryController::class)->except(['show']);
             Route::resource('product-types', ProductTypeController::class)->except(['show']);
