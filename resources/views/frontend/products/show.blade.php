@@ -9,6 +9,15 @@
             ->filter()
             ->unique()
             ->values();
+        $variantData = $product->variants
+            ->where('is_active', true)
+            ->map(fn($v) => [
+                'size_id' => $v->size_id,
+                'color_id' => $v->color_id,
+                'stock_qty' => (int) $v->stock_qty,
+            ])
+            ->values()
+            ->all();
     @endphp
     <nav class="mb-3 small">
         <a href="{{ route('home') }}" class="text-decoration-none">Home</a> /
@@ -60,7 +69,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Size</label>
-                            <select name="size_id" class="form-select" required>
+                            <select name="size_id" class="form-select" required id="variant-size">
                                 <option value="">Select size</option>
                                 @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
                                     <option value="{{ $size->id }}" @selected((string) old('size_id') === (string) $size->id)>{{ $size->name }}</option>
@@ -72,7 +81,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Color</label>
-                            <select name="color_id" class="form-select" required>
+                            <select name="color_id" class="form-select" required id="variant-color">
                                 <option value="">Select color</option>
                                 @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
                                     <option value="{{ $color->id }}" @selected((string) old('color_id') === (string) $color->id)>{{ $color->name }}</option>
@@ -93,6 +102,7 @@
                             <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </div>
                     </form>
+                    <div id="variant-validation" class="text-danger small mt-2 d-none"></div>
                     @error('cart')
                         <div class="text-danger small mt-2">{{ $message }}</div>
                     @enderror
@@ -160,6 +170,135 @@
                     btn.querySelector('.product-thumb-image')?.classList.add('border-primary', 'border-2');
                 });
             });
+        })();
+    </script>
+
+    <script>
+        (() => {
+            const sizeSelect = document.getElementById('variant-size');
+            const colorSelect = document.getElementById('variant-color');
+            const validationEl = document.getElementById('variant-validation');
+            const form = sizeSelect?.closest('form');
+
+            if (!sizeSelect || !colorSelect || !form) return;
+
+            const variants = @json($variantData);
+
+            const allSizeOptions = Array.from(sizeSelect.options).map((opt) => ({
+                value: opt.value,
+                text: opt.text,
+                isPlaceholder: opt.value === '',
+            }));
+            const allColorOptions = Array.from(colorSelect.options).map((opt) => ({
+                value: opt.value,
+                text: opt.text,
+                isPlaceholder: opt.value === '',
+            }));
+
+            const showValidation = (message) => {
+                if (!validationEl) return;
+                if (!message) {
+                    validationEl.textContent = '';
+                    validationEl.classList.add('d-none');
+                    return;
+                }
+                validationEl.textContent = message;
+                validationEl.classList.remove('d-none');
+            };
+
+            const setOptions = (selectEl, allOptions, allowedSet) => {
+                const current = selectEl.value;
+                selectEl.innerHTML = '';
+                allOptions.forEach((opt) => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = opt.value;
+                    optionEl.textContent = opt.text;
+                    if (opt.isPlaceholder) {
+                        selectEl.appendChild(optionEl);
+                        return;
+                    }
+                    const allowed = allowedSet ? allowedSet.has(String(opt.value)) : true;
+                    optionEl.disabled = !allowed;
+                    optionEl.hidden = !allowed;
+                    selectEl.appendChild(optionEl);
+                });
+                if (current && Array.from(selectEl.options).some((o) => o.value === current && !o.disabled)) {
+                    selectEl.value = current;
+                } else {
+                    selectEl.value = '';
+                }
+            };
+
+            const computeAllowed = (sizeId, colorId) => {
+                const inStock = variants.filter((v) => (v.stock_qty ?? 0) > 0);
+
+                const allowedColors = new Set(
+                    inStock
+                        .filter((v) => !sizeId || String(v.size_id) === String(sizeId))
+                        .map((v) => String(v.color_id))
+                );
+                const allowedSizes = new Set(
+                    inStock
+                        .filter((v) => !colorId || String(v.color_id) === String(colorId))
+                        .map((v) => String(v.size_id))
+                );
+
+                const hasExact = !!(sizeId && colorId && inStock.some(
+                    (v) => String(v.size_id) === String(sizeId) && String(v.color_id) === String(colorId)
+                ));
+
+                return { allowedColors, allowedSizes, hasExact };
+            };
+
+            const refresh = (source) => {
+                const sizeId = sizeSelect.value || '';
+                const colorId = colorSelect.value || '';
+
+                const { allowedColors, allowedSizes, hasExact } = computeAllowed(sizeId, colorId);
+
+                setOptions(colorSelect, allColorOptions, sizeId ? allowedColors : null);
+                setOptions(sizeSelect, allSizeOptions, colorId ? allowedSizes : null);
+
+                // If the user changed one selector and it invalidated the other, it will be reset by setOptions().
+                // Now validate the combined state.
+                const finalSize = sizeSelect.value || '';
+                const finalColor = colorSelect.value || '';
+                const exactNow = !!(finalSize && finalColor && computeAllowed(finalSize, finalColor).hasExact);
+
+                if (!finalSize || !finalColor) {
+                    showValidation('');
+                    return;
+                }
+
+                if (!exactNow) {
+                    showValidation('This size/color combination is not available. Please choose another option.');
+                } else {
+                    showValidation('');
+                }
+            };
+
+            sizeSelect.addEventListener('change', () => refresh('size'));
+            colorSelect.addEventListener('change', () => refresh('color'));
+
+            form.addEventListener('submit', (e) => {
+                const sizeId = sizeSelect.value || '';
+                const colorId = colorSelect.value || '';
+
+                if (!sizeId || !colorId) {
+                    e.preventDefault();
+                    showValidation('Please select both size and color.');
+                    return;
+                }
+
+                const { hasExact } = computeAllowed(sizeId, colorId);
+                if (!hasExact) {
+                    e.preventDefault();
+                    showValidation('This size/color combination is not available or out of stock.');
+                }
+            });
+
+            // Initial filtering based on defaults / old() input
+            refresh('init');
         })();
     </script>
 @endsection
