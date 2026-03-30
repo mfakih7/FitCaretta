@@ -168,6 +168,9 @@
                 </a>
 
                 <div class="sidebar-section-label">System</div>
+                <a href="{{ route('admin.about.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.about.*') ? 'active' : '' }}">
+                    <i data-lucide="info"></i><span>About</span>
+                </a>
                 <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i data-lucide="settings"></i><span>Settings</span>
                 </a>

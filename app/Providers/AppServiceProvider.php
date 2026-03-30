@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Models\Content\AboutPage;
 use Illuminate\Support\Arr;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,23 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         $this->applyStoreSettingsOverrides();
+        $this->composeFrontendAboutNav();
+    }
+
+    private function composeFrontendAboutNav(): void
+    {
+        View::composer('frontend.partials.header', function ($view) {
+            $enabled = false;
+            try {
+                if (Schema::hasTable('about_pages')) {
+                    $enabled = AboutPage::query()->visible()->exists();
+                }
+            } catch (\Throwable) {
+                $enabled = false;
+            }
+
+            $view->with('showAboutNav', $enabled);
+        });
     }
 
     private function applyStoreSettingsOverrides(): void

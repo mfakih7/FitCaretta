@@ -31,6 +31,11 @@
                 <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('offers')) active @endif" href="{{ route('offers') }}" @if(request()->routeIs('offers')) aria-current="page" @endif>Offers</a>
                 </li>
+                @if(!empty($showAboutNav))
+                    <li class="nav-item">
+                        <a class="nav-link @if(request()->routeIs('about.show')) active @endif" href="{{ route('about.show') }}" @if(request()->routeIs('about.show')) aria-current="page" @endif>About</a>
+                    </li>
+                @endif
             </ul>
             <div class="d-flex align-items-center gap-2 fc-nav-actions">
                 <form class="d-flex align-items-center gap-2" role="search" method="GET" action="{{ route('search') }}">

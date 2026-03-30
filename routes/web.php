@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\HomepageSlideController;
+use App\Http\Controllers\Admin\AboutPageController as AdminAboutPageController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductTypeController;
 use App\Http\Controllers\Admin\Reports\OrdersReportController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\SizeController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
+use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\Frontend\StorefrontController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +44,7 @@ Route::get('/categories/{slug}', [StorefrontController::class, 'category'])->nam
 Route::get('/products/{slug}', [StorefrontController::class, 'productDetails'])->name('products.show');
 Route::get('/search', [StorefrontController::class, 'search'])->name('search');
 Route::get('/offers', [StorefrontController::class, 'offers'])->name('offers');
+Route::get('/about', [AboutController::class, 'show'])->name('about.show');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::patch('/cart/{key}', [CartController::class, 'update'])->name('cart.update');
@@ -120,6 +123,8 @@ Route::prefix('admin')
             Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
             Route::get('reports/orders', [OrdersReportController::class, 'index'])->name('reports.orders.index');
             Route::get('reports/orders/export', [OrdersReportController::class, 'exportCsv'])->name('reports.orders.export');
+            Route::get('about', [AdminAboutPageController::class, 'edit'])->name('about.edit');
+            Route::put('about', [AdminAboutPageController::class, 'update'])->name('about.update');
             Route::delete(
                 'products/{product}/gallery-images/{image}',
                 [ProductController::class, 'destroyGalleryImage']
