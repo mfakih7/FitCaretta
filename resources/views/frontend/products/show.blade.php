@@ -46,11 +46,16 @@
             border: 1px solid #eef0f2;
             background: #fff;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
         }
         .fc-pdp-hero img {
             width: 100%;
-            height: min(70vh, 680px);
-            object-fit: cover;
+            height: auto;
+            max-height: min(70vh, 680px);
+            object-fit: contain;
             display: block;
         }
 
@@ -63,7 +68,8 @@
             .fc-pdp-gallery { flex-direction: column-reverse; }
             .fc-pdp-thumbs { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
             .fc-pdp-thumb { width: 78px; height: 78px; flex: 0 0 auto; }
-            .fc-pdp-hero img { height: 420px; }
+            .fc-pdp-hero { padding: 12px; }
+            .fc-pdp-hero img { max-height: 420px; }
             .product-details { margin-bottom: 56px; }
             .related-products { margin-top: 40px; }
         }
