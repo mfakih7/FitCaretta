@@ -7,11 +7,13 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\HomepageSlideController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductTypeController;
 use App\Http\Controllers\Admin\Reports\OrdersReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SizeController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\OrderController;
@@ -98,6 +100,11 @@ Route::prefix('admin')
 
             Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
             Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+            Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+
+            Route::resource('homepage-slides', HomepageSlideController::class)->except(['show']);
 
             Route::resource('categories', CategoryController::class)->except(['show']);
             Route::resource('product-types', ProductTypeController::class)->except(['show']);

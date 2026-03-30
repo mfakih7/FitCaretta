@@ -156,6 +156,40 @@
             color: #fff;
             border-radius: 0;
         }
+        .fc-hero-carousel .carousel-item {
+            min-height: clamp(360px, 46vh, 520px);
+        }
+        .fc-hero-slide {
+            position: relative;
+            min-height: inherit;
+            background-size: cover;
+            background-position: center;
+        }
+        .fc-hero-slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,.58), rgba(0,0,0,.25) 55%, rgba(0,0,0,.15));
+        }
+        .fc-hero-slide-inner {
+            position: relative;
+            z-index: 1;
+        }
+        .fc-hero-carousel .carousel-indicators [data-bs-target] {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            opacity: .55;
+        }
+        .fc-hero-carousel .carousel-indicators .active { opacity: 1; }
+        .fc-hero-carousel .carousel-control-prev,
+        .fc-hero-carousel .carousel-control-next {
+            width: 7%;
+            min-width: 52px;
+            opacity: .85;
+        }
+        .fc-hero-carousel .carousel-control-prev:hover,
+        .fc-hero-carousel .carousel-control-next:hover { opacity: 1; }
         .fc-section-title {
             font-weight: 600;
             letter-spacing: .2px;
