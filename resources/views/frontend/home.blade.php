@@ -26,7 +26,8 @@
                         @endphp
                         <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
                             <div class="fc-hero-slide p-4 p-md-5" style="{{ $bg }}">
-                                <div class="container fc-hero-slide-inner">
+                                <div class="container-fluid px-3 px-lg-5 fc-hero-slide-inner">
+                                    <div class="mx-auto" style="max-width: 1320px;">
                                     <div class="row align-items-center gy-4">
                                         <div class="col-lg-7">
                                             @if(filled($slide->badge))
@@ -40,24 +41,15 @@
                                             @if($hasBtn1 || $hasBtn2)
                                                 <div class="d-flex gap-2 flex-wrap">
                                                     @if($hasBtn1)
-                                                        <a href="{{ $slide->button_one_link }}" class="btn btn-light px-4">{{ $slide->button_one_text }}</a>
+                                                        <a href="{{ $slide->button_one_link }}" class="btn btn-light">{{ $slide->button_one_text }}</a>
                                                     @endif
                                                     @if($hasBtn2)
-                                                        <a href="{{ $slide->button_two_link }}" class="btn btn-outline-light px-4">{{ $slide->button_two_text }}</a>
+                                                        <a href="{{ $slide->button_two_link }}" class="btn btn-outline-light">{{ $slide->button_two_text }}</a>
                                                     @endif
                                                 </div>
                                             @endif
                                         </div>
-                                        <div class="col-lg-5 d-none d-lg-block">
-                                            <div class="fc-kaira-banner fc-kaira-banner-dark p-4 p-lg-5 h-100">
-                                                <h5 class="mb-2 text-uppercase small" style="letter-spacing:.8px;">{{ config('store.tagline') }}</h5>
-                                                <p class="mb-3 text-white-50">
-                                                    {{ config('store.short_description') }}
-                                                </p>
-                                                <a href="{{ route('shop') }}" class="btn btn-sm btn-light">Shop</a>
-                                                <a href="{{ route('offers') }}" class="btn btn-sm btn-outline-light ms-1">Offers</a>
-                                            </div>
-                                        </div>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -76,27 +68,23 @@
             </div>
         </section>
     @else
-        <section class="fc-hero p-4 p-md-5 mb-4 mb-lg-5">
-            <div class="row align-items-center gy-4">
-                <div class="col-lg-7">
-                    <span class="fc-pill mb-3">New Collections</span>
-                    <h1 class="fc-home-hero-title fw-semibold mb-3">{{ config('store.hero_title') }}</h1>
-                    <p class="fc-home-hero-sub mb-4">
-                        Premium performance essentials inspired by modern fashion. Shop refined men and women looks with clean cuts and confident comfort.
-                    </p>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="{{ route('shop') }}" class="btn btn-light px-4">Shop Collection</a>
-                        <a href="{{ route('offers') }}" class="btn btn-outline-light px-4">View Offers</a>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="fc-kaira-banner fc-kaira-banner-dark p-4 p-lg-5 h-100">
-                        <h5 class="mb-2 text-uppercase small" style="letter-spacing:.8px;">Classic winter collection</h5>
-                        <p class="mb-3 text-white-50">
-                            Curated activewear pieces built for training, movement, and everyday style.
-                        </p>
-                        <a href="{{ route('shop.men') }}" class="btn btn-sm btn-light">Shop Men</a>
-                        <a href="{{ route('shop.women') }}" class="btn btn-sm btn-outline-light ms-1">Shop Women</a>
+        <section class="fc-hero p-0 mb-4 mb-lg-5">
+            <div class="container-fluid px-3 px-lg-5">
+                <div class="mx-auto" style="max-width: 1320px;">
+                    <div class="py-4 py-md-5">
+                        <div class="row align-items-center gy-4">
+                            <div class="col-lg-7">
+                                <span class="fc-pill mb-3">New Collections</span>
+                                <h1 class="fc-home-hero-title fw-semibold mb-3">{{ config('store.hero_title') }}</h1>
+                                <p class="fc-home-hero-sub mb-4">
+                                    Premium performance essentials inspired by modern fashion. Shop refined men and women looks with clean cuts and confident comfort.
+                                </p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{{ route('shop') }}" class="btn btn-light">Shop Collection</a>
+                                    <a href="{{ route('offers') }}" class="btn btn-outline-light">View Offers</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

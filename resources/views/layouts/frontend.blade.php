@@ -56,13 +56,69 @@
             min-height: 82px;
             align-items: center;
         }
-        .fc-navbar .navbar-brand {
+        .fc-header-grid{
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+        }
+        .fc-header-left{ display:flex; align-items:center; }
+        .fc-header-center{ display:flex; justify-content:center; }
+        .fc-header-right{ display:flex; align-items:center; justify-content:flex-end; gap: 10px; }
+        .fc-header-logo{ display:inline-flex; align-items:center; justify-content:center; padding:.15rem 0; }
+        .fc-header-burger{ border:0; padding:.35rem .4rem; }
+        .fc-header-collapse{ }
+        .fc-header-menu{ align-items:center; gap:.15rem; }
+
+        .fc-icon-btn{
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid var(--fc-border);
+            background: #fff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: .15rem 0;
-            margin-right: 1.25rem;
+            text-decoration: none;
+            transition: all .14s ease;
+            color: var(--fc-ink);
         }
+        .fc-icon-btn:hover{
+            border-color: var(--fc-border-strong);
+            box-shadow: 0 10px 18px rgba(0,0,0,.05);
+            transform: translateY(-1px);
+            color: var(--fc-accent-dark);
+        }
+        .fc-icon-btn svg{ width: 20px; height: 20px; }
+        .fc-cart-badge{
+            position:absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: var(--fc-ink);
+            color:#fff;
+            font-size: .72rem;
+            line-height: 18px;
+            text-align:center;
+        }
+
+        .fc-header-search{ display:flex; align-items:center; gap:8px; }
+        .fc-header-search-form{
+            width: 0;
+            overflow: hidden;
+            transition: width .18s ease;
+        }
+        .fc-header-search[data-open="1"] .fc-header-search-form{
+            width: 220px;
+        }
+        .fc-header-search .fc-search-input{
+            width: 220px;
+        }
+
         .fc-brand-logo {
             height: 38px;
             width: auto;
@@ -195,6 +251,66 @@
             letter-spacing: .2px;
             text-transform: uppercase;
             font-size: 1.25rem;
+        }
+
+        /* ----------------------------
+           Global button design system
+           ---------------------------- */
+        .btn {
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            padding: .68rem 1.15rem;
+            line-height: 1.05;
+        }
+        .btn-sm {
+            padding: .5rem .9rem;
+            font-size: .82rem;
+        }
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 .22rem rgba(114, 174, 200, .18);
+        }
+
+        /* Primary */
+        .btn-primary,
+        .btn-dark {
+            background: var(--fc-ink);
+            border-color: var(--fc-ink);
+            color: #fff;
+        }
+        .btn-primary:hover,
+        .btn-dark:hover {
+            background: #000;
+            border-color: #000;
+            color: #fff;
+        }
+
+        /* Secondary */
+        .btn-outline-dark,
+        .btn-outline-light {
+            border-width: 1px;
+        }
+        .btn-outline-dark {
+            border-color: var(--fc-ink);
+            color: var(--fc-ink);
+            background: transparent;
+        }
+        .btn-outline-dark:hover {
+            background: var(--fc-ink);
+            border-color: var(--fc-ink);
+            color: #fff;
+        }
+        .btn-light {
+            background: #fff;
+            border-color: #fff;
+            color: var(--fc-ink);
+        }
+        .btn-light:hover {
+            background: #f3f4f6;
+            border-color: #f3f4f6;
+            color: var(--fc-ink);
         }
         /* Premium minimal system (scoped to fc-* only) */
         .fc-section { padding-top: 1.25rem; padding-bottom: 1.25rem; }
@@ -444,12 +560,13 @@
             .fc-navbar .container { min-height: 74px; }
             .fc-navbar .nav-link { padding-left: 0; padding-right: 0; }
             .fc-brand-logo { height: 34px; }
-            .fc-nav-actions {
-                min-width: 100%;
-                justify-content: flex-start;
-                margin-top: .75rem;
-            }
-            .fc-search-input { min-width: 0; width: 170px; }
+            .fc-header-grid{ grid-template-columns: auto 1fr auto; }
+            .fc-header-left{ justify-content:flex-start; }
+            .fc-header-center{ justify-content:center; }
+            .fc-header-right{ justify-content:flex-end; }
+            .fc-header-search[data-open="1"] .fc-header-search-form{ width: 160px; }
+            .fc-header-search .fc-search-input{ width: 160px; }
+            .fc-icon-btn{ width: 40px; height: 40px; }
         }
     </style>
 </head>

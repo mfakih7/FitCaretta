@@ -19,32 +19,88 @@
             ->values()
             ->all();
     @endphp
-    <nav class="mb-3 small">
-        <a href="{{ route('home') }}" class="text-decoration-none">Home</a> /
-        <a href="{{ route('shop') }}" class="text-decoration-none">Shop</a> /
-        <a href="{{ route('shop.category', $product->category->slug) }}" class="text-decoration-none">{{ $product->category->name }}</a>
-    </nav>
+    <style>
+        .fc-pdp { padding-top: .25rem; }
+        .product-details { margin-bottom: 70px; }
+        .related-products { margin-top: 50px; }
+        .fc-pdp-breadcrumb { font-size: .85rem; color: #6b7280; }
+        .fc-pdp-breadcrumb a { color: inherit; text-decoration: none; }
+        .fc-pdp-breadcrumb a:hover { color: #111; text-decoration: underline; }
+        .fc-pdp-collection { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: #6b7280; }
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-6">
-            @if($images->isNotEmpty())
-                <img id="main-product-image" src="{{ $images->first() }}" class="fc-product-gallery-main mb-2" alt="{{ $product->name }}">
-                <div class="d-flex flex-wrap fc-product-thumbs">
-                    @foreach($images as $img)
-                        <button type="button" class="p-0 border-0 bg-transparent product-thumb-btn" data-image="{{ $img }}">
-                            <span class="d-inline-flex align-items-center justify-content-center fc-product-thumb">
-                                <img src="{{ $img }}" alt="Gallery image" class="product-thumb-image">
-                            </span>
-                        </button>
-                    @endforeach
-                </div>
-            @else
-                <div class="bg-light rounded border d-flex align-items-center justify-content-center" style="height:360px;">No image</div>
-            @endif
+        .fc-pdp-gallery { display: flex; gap: 14px; align-items: flex-start; }
+        .fc-pdp-thumbs { width: 86px; display: flex; flex-direction: column; gap: 10px; }
+        .fc-pdp-thumb {
+            width: 86px; height: 86px; border-radius: 12px;
+            border: 1px solid #e5e7eb; background: #fff;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+            transition: all .12s ease;
+        }
+        .fc-pdp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fc-pdp-thumb.is-active { border-color: #111; box-shadow: 0 0 0 2px rgba(17,17,17,.08); }
+        .fc-pdp-thumb:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.06); }
+
+        .fc-pdp-hero {
+            flex: 1;
+            border-radius: 18px;
+            border: 1px solid #eef0f2;
+            background: #fff;
+            overflow: hidden;
+        }
+        .fc-pdp-hero img {
+            width: 100%;
+            height: min(70vh, 680px);
+            object-fit: cover;
+            display: block;
+        }
+
+        .fc-pdp-title { font-size: clamp(1.7rem, 2.6vw, 2.35rem); line-height: 1.08; letter-spacing: .2px; }
+        .fc-pdp-price { margin-top: .5rem; }
+        .fc-pdp-summary { max-width: 52ch; }
+        .fc-pdp-divider { border-top: 1px solid #eef0f2; margin: 1rem 0; }
+
+        @media (max-width: 991.98px) {
+            .fc-pdp-gallery { flex-direction: column-reverse; }
+            .fc-pdp-thumbs { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
+            .fc-pdp-thumb { width: 78px; height: 78px; flex: 0 0 auto; }
+            .fc-pdp-hero img { height: 420px; }
+            .product-details { margin-bottom: 56px; }
+            .related-products { margin-top: 40px; }
+        }
+    </style>
+
+    <section class="product-details fc-pdp">
+        <div class="fc-pdp-breadcrumb mb-2">
+            <a href="{{ route('home') }}">Home</a> /
+            <a href="{{ route('shop') }}">Shop</a> /
+            <a href="{{ route('shop.category', $product->category->slug) }}">{{ $product->category->name }}</a>
         </div>
-        <div class="col-md-6">
-            <h1 class="h3">{{ $product->name }}</h1>
-            <div class="text-muted mb-2 text-capitalize">{{ $product->gender_target->value }} / {{ $product->category->name }}</div>
+
+        <div class="row g-4 g-lg-5 align-items-start">
+            <div class="col-lg-7">
+                @if($images->isNotEmpty())
+                    <div class="fc-pdp-gallery">
+                        <div class="fc-pdp-thumbs">
+                            @foreach($images as $img)
+                                <button type="button" class="p-0 border-0 bg-transparent product-thumb-btn" data-image="{{ $img }}">
+                                    <span class="fc-pdp-thumb">
+                                        <img src="{{ $img }}" alt="Gallery image" class="product-thumb-image">
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                        <div class="fc-pdp-hero">
+                            <img id="main-product-image" src="{{ $images->first() }}" alt="{{ $product->name }}">
+                        </div>
+                    </div>
+                @else
+                    <div class="bg-light rounded border d-flex align-items-center justify-content-center" style="height:420px;">No image</div>
+                @endif
+            </div>
+
+            <div class="col-lg-5">
+                <div class="fc-pdp-collection mb-2 text-capitalize">{{ $product->gender_target->value }} / {{ $product->category->name }}</div>
+                <h1 class="fc-pdp-title fw-semibold mb-2">{{ $product->name }}</h1>
 
             @if($pricing['discount'])
                 <div class="fc-price-old">{{ config('store.currency_symbol') }}{{ number_format($pricing['base_price'], 2) }}</div>
@@ -54,52 +110,149 @@
             @endif
 
             @if($product->short_description)
-                <p class="mb-2">{{ $product->short_description }}</p>
+                <p class="mb-2 fc-pdp-summary">{{ $product->short_description }}</p>
             @endif
             @if($product->description)
-                <p class="text-muted">{{ $product->description }}</p>
+                <p class="text-muted fc-pdp-summary" style="white-space: pre-line;">{{ $product->description }}</p>
             @endif
 
-            <div class="card border-0 shadow-sm mt-3">
-                <div class="card-body">
-                    <h6 class="mb-3">Add to Cart</h6>
-                    <form method="POST" action="{{ route('cart.store') }}" class="row g-2">
+            <div class="fc-pdp-divider"></div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-3 p-md-4">
+                    <h6 class="mb-2">Select Options</h6>
+                    <style>
+                        .fc-variant-label { font-size: .78rem; letter-spacing: .6px; text-transform: uppercase; color: #6b7280; margin-bottom: .25rem; }
+                        .fc-swatch-row { display:flex; flex-wrap:wrap; gap:.45rem; }
+                        .fc-swatch {
+                            width: 30px; height: 30px; border-radius: 999px;
+                            border: 1px solid #e5e7eb; background: #fff;
+                            display:inline-flex; align-items:center; justify-content:center;
+                            transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+                        }
+                        .fc-swatch:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+                        .fc-swatch.is-active { border-color: #111; box-shadow: 0 0 0 2px rgba(17,17,17,.12); }
+                        .fc-swatch.is-disabled { opacity: .35; pointer-events: none; filter: grayscale(1); }
+                        .fc-swatch-dot { width: 18px; height: 18px; border-radius: 999px; border: 1px solid rgba(0,0,0,.12); }
+
+                        .fc-size-row { display:flex; flex-wrap:wrap; gap:.4rem; }
+                        .fc-size-pill {
+                            border: 1px solid #e5e7eb;
+                            background: #fff;
+                            border-radius: 999px;
+                            padding: .35rem .65rem;
+                            font-size: .85rem;
+                            line-height: 1;
+                            transition: all .12s ease;
+                        }
+                        .fc-size-pill:hover { border-color:#cbd5e1; transform: translateY(-1px); }
+                        .fc-size-pill.is-active { background:#111; color:#fff; border-color:#111; }
+                        .fc-size-pill.is-disabled { opacity:.4; pointer-events:none; }
+
+                        .fc-qty {
+                            display:flex; align-items:center; justify-content:space-between;
+                            border: 1px solid #e5e7eb; border-radius: 999px;
+                            padding: .2rem; width: 128px; background:#fff;
+                        }
+                        .fc-qty button {
+                            width: 30px; height: 30px; border-radius: 999px;
+                            border: 0; background:#f3f4f6; color:#111;
+                        }
+                        .fc-qty button:hover { background:#e5e7eb; }
+                        .fc-qty input {
+                            width: 44px; text-align:center; border:0; background:transparent; font-weight:600;
+                        }
+                        .fc-qty input:focus { outline:none; }
+
+                        .fc-cta {
+                            border-radius: 999px;
+                            padding: .55rem .9rem;
+                            font-weight: 600;
+                            letter-spacing: .4px;
+                            text-transform: uppercase;
+                            font-size: .85rem;
+                        }
+                        .fc-cta svg { width:16px; height:16px; }
+                    </style>
+
+                    <form method="POST" action="{{ route('cart.store') }}" class="row g-2" id="add-to-cart-form">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                        <div class="col-md-6">
-                            <label class="form-label">Size</label>
+                        <div class="col-12">
+                            <div class="fc-variant-label">Color</div>
+                            <div class="fc-swatch-row" id="color-swatch-row" aria-label="Select color">
+                                @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
+                                    <button
+                                        type="button"
+                                        class="fc-swatch"
+                                        data-color-id="{{ $color->id }}"
+                                        title="{{ $color->name }}"
+                                        aria-label="{{ $color->name }}"
+                                    >
+                                        <span class="fc-swatch-dot" style="background: {{ $color->hex_code ?: '#111' }}"></span>
+                                    </button>
+                                @endforeach
+                            </div>
+                            @error('size_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-12">
+                            <div class="fc-variant-label">Size</div>
+                            <div class="fc-size-row" id="size-pill-row" aria-label="Select size">
+                                @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
+                                    <button
+                                        type="button"
+                                        class="fc-size-pill"
+                                        data-size-id="{{ $size->id }}"
+                                        aria-label="Size {{ $size->name }}"
+                                    >{{ $size->name }}</button>
+                                @endforeach
+                            </div>
+                            @error('size_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-12 d-flex flex-wrap align-items-end justify-content-between gap-2">
+                            <div class="d-flex align-items-end gap-2 flex-wrap">
+                                <div>
+                                    <div class="fc-variant-label">Quantity</div>
+                                    <div class="fc-qty">
+                                        <button type="button" id="qty-minus" aria-label="Decrease quantity">-</button>
+                                        <input type="number" min="1" name="quantity" id="qty-input" value="{{ old('quantity', 1) }}" required>
+                                        <button type="button" id="qty-plus" aria-label="Increase quantity">+</button>
+                                    </div>
+                                    @error('quantity')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark fc-cta d-inline-flex align-items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 8H19M7 13l-2-10m5 18a1 1 0 11-2 0 1 1 0 012 0zm10 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                </svg>
+                                Add to Cart
+                            </button>
+                        </div>
+
+                        {{-- Hidden selects kept for backend compatibility --}}
+                        <div class="d-none">
                             <select name="size_id" class="form-select" required id="variant-size">
                                 <option value="">Select size</option>
                                 @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
                                     <option value="{{ $size->id }}" @selected((string) old('size_id') === (string) $size->id)>{{ $size->name }}</option>
                                 @endforeach
                             </select>
-                            @error('size_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Color</label>
                             <select name="color_id" class="form-select" required id="variant-color">
                                 <option value="">Select color</option>
                                 @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
                                     <option value="{{ $color->id }}" @selected((string) old('color_id') === (string) $color->id)>{{ $color->name }}</option>
                                 @endforeach
                             </select>
-                            @error('color_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Quantity</label>
-                            <input type="number" min="1" name="quantity" class="form-control" value="{{ old('quantity', 1) }}" required>
-                            @error('quantity')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-8 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </div>
                     </form>
                     <div id="variant-validation" class="text-danger small mt-2 d-none"></div>
@@ -111,39 +264,10 @@
                     @enderror
                 </div>
             </div>
-
-            <h6 class="mt-4">Available Variants</h6>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                    <thead><tr><th>Size</th><th>Color</th><th>Stock</th></tr></thead>
-                    <tbody>
-                    @forelse($product->variants as $variant)
-                        <tr>
-                            <td>{{ $variant->size?->name ?? '-' }}</td>
-                            <td>
-                                {{ $variant->color?->name ?? '-' }}
-                                @if($variant->color?->hex_code)
-                                    <span class="d-inline-block rounded-circle border ms-1" style="width:12px;height:12px;background:{{ $variant->color->hex_code }}"></span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($variant->stock_qty > 0)
-                                    <span class="badge bg-success">In stock ({{ $variant->stock_qty }})</span>
-                                @else
-                                    <span class="badge bg-secondary">Out of stock</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="3" class="text-muted">No variants available.</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
         </div>
-    </div>
+    </section>
 
-    <section>
+    <section class="related-products">
         <h2 class="h5 mb-3">Related Products</h2>
         <div class="row g-3">
             @forelse($relatedProducts as $related)
@@ -162,12 +286,16 @@
             const thumbs = document.querySelectorAll('.product-thumb-btn');
             if (!main || thumbs.length === 0) return;
 
+            // Set initial active thumb
+            thumbs.forEach((b) => b.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.remove('is-active'));
+            thumbs[0]?.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.add('is-active');
+
             thumbs.forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const src = btn.dataset.image;
                     if (src) main.src = src;
-                    thumbs.forEach((b) => b.querySelector('.product-thumb-image')?.classList.remove('border-primary', 'border-2'));
-                    btn.querySelector('.product-thumb-image')?.classList.add('border-primary', 'border-2');
+                    thumbs.forEach((b) => b.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.remove('is-active'));
+                    btn.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.add('is-active');
                 });
             });
         })();
@@ -179,10 +307,38 @@
             const colorSelect = document.getElementById('variant-color');
             const validationEl = document.getElementById('variant-validation');
             const form = sizeSelect?.closest('form');
+            const sizePillRow = document.getElementById('size-pill-row');
+            const colorSwatchRow = document.getElementById('color-swatch-row');
+            const qtyMinus = document.getElementById('qty-minus');
+            const qtyPlus = document.getElementById('qty-plus');
+            const qtyInput = document.getElementById('qty-input');
 
             if (!sizeSelect || !colorSelect || !form) return;
 
             const variants = @json($variantData);
+
+            const gallery = Array.from(document.querySelectorAll('.product-thumb-btn')).map((btn) => ({
+                url: btn.dataset.image,
+                alt: (btn.querySelector('img')?.getAttribute('alt') || '').toLowerCase(),
+            })).filter((x) => !!x.url);
+
+            const findImageForColorName = (name) => {
+                const n = String(name || '').trim().toLowerCase();
+                if (!n || gallery.length === 0) return null;
+                const byAlt = gallery.find((g) => g.alt.includes(n));
+                return byAlt?.url || null;
+            };
+
+            const getSelectedColorName = () => {
+                const opt = colorSelect.options[colorSelect.selectedIndex];
+                return opt?.textContent || '';
+            };
+
+            const setMainImage = (url) => {
+                const main = document.getElementById('main-product-image');
+                if (!main || !url) return;
+                main.src = url;
+            };
 
             const allSizeOptions = Array.from(sizeSelect.options).map((opt) => ({
                 value: opt.value,
@@ -206,79 +362,70 @@
                 validationEl.classList.remove('d-none');
             };
 
-            const setOptions = (selectEl, allOptions, allowedSet) => {
-                const current = selectEl.value;
-                selectEl.innerHTML = '';
-                allOptions.forEach((opt) => {
-                    const optionEl = document.createElement('option');
-                    optionEl.value = opt.value;
-                    optionEl.textContent = opt.text;
-                    if (opt.isPlaceholder) {
-                        selectEl.appendChild(optionEl);
-                        return;
-                    }
-                    const allowed = allowedSet ? allowedSet.has(String(opt.value)) : true;
-                    optionEl.disabled = !allowed;
-                    optionEl.hidden = !allowed;
-                    selectEl.appendChild(optionEl);
-                });
-                if (current && Array.from(selectEl.options).some((o) => o.value === current && !o.disabled)) {
-                    selectEl.value = current;
-                } else {
-                    selectEl.value = '';
-                }
-            };
-
-            const computeAllowed = (sizeId, colorId) => {
-                const inStock = variants.filter((v) => (v.stock_qty ?? 0) > 0);
-
-                const allowedColors = new Set(
-                    inStock
-                        .filter((v) => !sizeId || String(v.size_id) === String(sizeId))
-                        .map((v) => String(v.color_id))
-                );
-                const allowedSizes = new Set(
-                    inStock
-                        .filter((v) => !colorId || String(v.color_id) === String(colorId))
-                        .map((v) => String(v.size_id))
-                );
-
-                const hasExact = !!(sizeId && colorId && inStock.some(
+            const hasVariant = (sizeId, colorId) => {
+                if (!sizeId || !colorId) return false;
+                return variants.some(
                     (v) => String(v.size_id) === String(sizeId) && String(v.color_id) === String(colorId)
-                ));
-
-                return { allowedColors, allowedSizes, hasExact };
+                );
             };
 
-            const refresh = (source) => {
+            const syncActiveUi = () => {
                 const sizeId = sizeSelect.value || '';
                 const colorId = colorSelect.value || '';
 
-                const { allowedColors, allowedSizes, hasExact } = computeAllowed(sizeId, colorId);
+                colorSwatchRow?.querySelectorAll('[data-color-id]').forEach((btn) => {
+                    const id = btn.getAttribute('data-color-id');
+                    btn.classList.toggle('is-active', String(colorId) === String(id));
+                    btn.classList.remove('is-disabled');
+                });
+                sizePillRow?.querySelectorAll('[data-size-id]').forEach((btn) => {
+                    const id = btn.getAttribute('data-size-id');
+                    btn.classList.toggle('is-active', String(sizeId) === String(id));
+                    btn.classList.remove('is-disabled');
+                });
 
-                setOptions(colorSelect, allColorOptions, sizeId ? allowedColors : null);
-                setOptions(sizeSelect, allSizeOptions, colorId ? allowedSizes : null);
-
-                // If the user changed one selector and it invalidated the other, it will be reset by setOptions().
-                // Now validate the combined state.
-                const finalSize = sizeSelect.value || '';
-                const finalColor = colorSelect.value || '';
-                const exactNow = !!(finalSize && finalColor && computeAllowed(finalSize, finalColor).hasExact);
-
-                if (!finalSize || !finalColor) {
-                    showValidation('');
-                    return;
-                }
-
-                if (!exactNow) {
-                    showValidation('This size/color combination is not available. Please choose another option.');
+                // Optional inline hint (does not block selection)
+                if (sizeId && colorId) {
+                    showValidation(hasVariant(sizeId, colorId) ? '' : 'This combination is not available.');
                 } else {
                     showValidation('');
                 }
             };
 
-            sizeSelect.addEventListener('change', () => refresh('size'));
-            colorSelect.addEventListener('change', () => refresh('color'));
+            sizeSelect.addEventListener('change', () => syncActiveUi());
+            colorSelect.addEventListener('change', () => {
+                syncActiveUi();
+                const colorName = getSelectedColorName();
+                const url = findImageForColorName(colorName);
+                if (url) setMainImage(url);
+            });
+
+            // Swatch + pill click handlers update hidden selects
+            colorSwatchRow?.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-color-id]');
+                if (!btn) return;
+                colorSelect.value = btn.getAttribute('data-color-id') || '';
+                colorSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            sizePillRow?.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-size-id]');
+                if (!btn) return;
+                sizeSelect.value = btn.getAttribute('data-size-id') || '';
+                sizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+
+            // Quantity +/- UX
+            const clampQty = (val) => Math.max(1, parseInt(val || '1', 10) || 1);
+            qtyMinus?.addEventListener('click', () => {
+                qtyInput.value = String(clampQty(qtyInput.value) - 1);
+                if (clampQty(qtyInput.value) < 1) qtyInput.value = '1';
+            });
+            qtyPlus?.addEventListener('click', () => {
+                qtyInput.value = String(clampQty(qtyInput.value) + 1);
+            });
+            qtyInput?.addEventListener('input', () => {
+                qtyInput.value = String(clampQty(qtyInput.value));
+            });
 
             form.addEventListener('submit', (e) => {
                 const sizeId = sizeSelect.value || '';
@@ -290,15 +437,14 @@
                     return;
                 }
 
-                const { hasExact } = computeAllowed(sizeId, colorId);
-                if (!hasExact) {
+                if (!hasVariant(sizeId, colorId)) {
                     e.preventDefault();
-                    showValidation('This size/color combination is not available or out of stock.');
+                    showValidation('This combination is not available.');
                 }
             });
 
-            // Initial filtering based on defaults / old() input
-            refresh('init');
+            // Initial UI sync (supports old() values)
+            syncActiveUi();
         })();
     </script>
 @endsection
