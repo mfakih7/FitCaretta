@@ -36,7 +36,17 @@
             overflow: hidden; display: flex; align-items: center; justify-content: center;
             transition: all .12s ease;
         }
-        .fc-pdp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fc-pdp-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain !important;
+            object-position: center;
+            display: block;
+            padding: 6px;
+            transform: none !important;
+        }
+        /* Prevent global hover-zoom from re-introducing cropping on thumbnails */
+        .fc-pdp-thumbs .product-thumb-btn:hover .product-thumb-image { transform: none !important; }
         .fc-pdp-thumb.is-active { border-color: #111; box-shadow: 0 0 0 2px rgba(17,17,17,.08); }
         .fc-pdp-thumb:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.06); }
 
