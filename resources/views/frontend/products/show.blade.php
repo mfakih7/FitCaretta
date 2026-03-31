@@ -4,11 +4,37 @@
 
 @section('content')
     @php
-        $images = collect([$product->main_image_url])
-            ->merge($product->images->map(fn($img) => $img->image_url))
-            ->filter()
-            ->unique()
+        $galleryItems = collect([
+            [
+                'url' => $product->main_image_url,
+                'color_id' => null,
+                'alt' => $product->name,
+            ],
+        ])->merge(
+            $product->images
+                ->sortBy('sort_order')
+                ->map(fn ($img) => [
+                    'url' => $img->image_url,
+                    'color_id' => $img->color_id,
+                    'alt' => $img->alt_text ?: $product->name,
+                ])
+        )
+            ->filter(fn ($x) => !empty($x['url']))
+            ->unique(fn ($x) => $x['url'])
             ->values();
+
+        $images = $galleryItems->pluck('url');
+        $imagesByColor = $product->images
+            ->sortBy('sort_order')
+            ->filter(fn ($img) => !empty($img->image_path) && !empty($img->image_url))
+            ->groupBy(fn ($img) => (string) ($img->color_id ?? 'null'))
+            ->map(fn ($imgs) => $imgs->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $img->image_url,
+                'color_id' => $img->color_id,
+                'alt' => $img->alt_text ?: $product->name,
+            ])->values())
+            ->toArray();
         $variantData = $product->variants
             ->where('is_active', true)
             ->map(fn($v) => [
@@ -97,10 +123,15 @@
                 @if($images->isNotEmpty())
                     <div class="fc-pdp-gallery">
                         <div class="fc-pdp-thumbs">
-                            @foreach($images as $img)
-                                <button type="button" class="p-0 border-0 bg-transparent product-thumb-btn" data-image="{{ $img }}">
+                            @foreach($galleryItems as $item)
+                                <button
+                                    type="button"
+                                    class="p-0 border-0 bg-transparent product-thumb-btn"
+                                    data-image="{{ $item['url'] }}"
+                                    data-color-id="{{ $item['color_id'] }}"
+                                >
                                     <span class="fc-pdp-thumb">
-                                        <img src="{{ $img }}" alt="Gallery image" class="product-thumb-image">
+                                        <img src="{{ $item['url'] }}" alt="{{ $item['alt'] }}" class="product-thumb-image">
                                     </span>
                                 </button>
                             @endforeach
@@ -298,62 +329,78 @@
 
     <script>
         (() => {
-            const main = document.getElementById('main-product-image');
-            const thumbs = document.querySelectorAll('.product-thumb-btn');
-            if (!main || thumbs.length === 0) return;
-
-            // Set initial active thumb
-            thumbs.forEach((b) => b.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.remove('is-active'));
-            thumbs[0]?.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.add('is-active');
-
-            thumbs.forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const src = btn.dataset.image;
-                    if (src) main.src = src;
-                    thumbs.forEach((b) => b.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.remove('is-active'));
-                    btn.querySelector('.fc-pdp-thumb, .fc-product-thumb')?.classList.add('is-active');
-                });
-            });
-        })();
-    </script>
-
-    <script>
-        (() => {
             const sizeSelect = document.getElementById('variant-size');
             const colorSelect = document.getElementById('variant-color');
             const validationEl = document.getElementById('variant-validation');
             const form = sizeSelect?.closest('form');
             const sizePillRow = document.getElementById('size-pill-row');
             const colorSwatchRow = document.getElementById('color-swatch-row');
+            const thumbsWrap = document.querySelector('.fc-pdp-thumbs');
+            const main = document.getElementById('main-product-image');
             const qtyMinus = document.getElementById('qty-minus');
             const qtyPlus = document.getElementById('qty-plus');
             const qtyInput = document.getElementById('qty-input');
 
-            if (!sizeSelect || !colorSelect || !form) return;
+            if (!sizeSelect || !colorSelect || !form || !thumbsWrap || !main) return;
 
             const variants = @json($variantData);
-
-            const gallery = Array.from(document.querySelectorAll('.product-thumb-btn')).map((btn) => ({
-                url: btn.dataset.image,
-                alt: (btn.querySelector('img')?.getAttribute('alt') || '').toLowerCase(),
-            })).filter((x) => !!x.url);
-
-            const findImageForColorName = (name) => {
-                const n = String(name || '').trim().toLowerCase();
-                if (!n || gallery.length === 0) return null;
-                const byAlt = gallery.find((g) => g.alt.includes(n));
-                return byAlt?.url || null;
-            };
-
-            const getSelectedColorName = () => {
-                const opt = colorSelect.options[colorSelect.selectedIndex];
-                return opt?.textContent || '';
-            };
+            const imagesByColor = @json($imagesByColor);
 
             const setMainImage = (url) => {
-                const main = document.getElementById('main-product-image');
-                if (!main || !url) return;
-                main.src = url;
+                if (!url) return;
+                const absoluteUrl = (() => {
+                    try {
+                        return new URL(url, window.location.href).toString();
+                    } catch (_) {
+                        return url;
+                    }
+                })();
+                main.style.opacity = '0.02';
+                main.src = absoluteUrl;
+                setTimeout(() => (main.style.opacity = '1'), 60);
+            };
+
+            const allThumbButtons = () => Array.from(thumbsWrap.querySelectorAll('.product-thumb-btn'));
+
+            const setActiveThumbByUrl = (url) => {
+                if (!url) return;
+                const btn = allThumbButtons().find((b) => (b.dataset.image || '') === url);
+                if (!btn) return;
+                thumbsWrap.querySelectorAll('.fc-pdp-thumb').forEach((t) => t.classList.remove('is-active'));
+                btn.querySelector('.fc-pdp-thumb')?.classList.add('is-active');
+            };
+
+            const initThumbClicks = () => {
+                const thumbs = allThumbButtons();
+                if (thumbs.length === 0) return;
+
+                // Ensure a consistent initial active state
+                thumbsWrap.querySelectorAll('.fc-pdp-thumb').forEach((t) => t.classList.remove('is-active'));
+                thumbs[0]?.querySelector('.fc-pdp-thumb')?.classList.add('is-active');
+
+                thumbs.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const src = btn.dataset.image;
+                        if (!src) return;
+                        setMainImage(src);
+                        thumbsWrap.querySelectorAll('.fc-pdp-thumb').forEach((t) => t.classList.remove('is-active'));
+                        btn.querySelector('.fc-pdp-thumb')?.classList.add('is-active');
+                    });
+                });
+            };
+
+            const updateMainImageForColor = (colorId) => {
+                const key = String(colorId || '');
+                const imgs = imagesByColor?.[key] || [];
+
+                if (Array.isArray(imgs) && imgs.length > 0) {
+                    setMainImage(imgs[0].url);
+                    // Optional polish: highlight the mapped thumbnail if it exists
+                    setActiveThumbByUrl(imgs[0].url);
+                    return;
+                }
+
+                // No mapped image for this color → keep current main image, keep all thumbs visible.
             };
 
             const allSizeOptions = Array.from(sizeSelect.options).map((opt) => ({
@@ -411,16 +458,15 @@
             sizeSelect.addEventListener('change', () => syncActiveUi());
             colorSelect.addEventListener('change', () => {
                 syncActiveUi();
-                const colorName = getSelectedColorName();
-                const url = findImageForColorName(colorName);
-                if (url) setMainImage(url);
+                updateMainImageForColor(colorSelect.value || '');
             });
 
             // Swatch + pill click handlers update hidden selects
             colorSwatchRow?.addEventListener('click', (e) => {
                 const btn = e.target.closest('[data-color-id]');
                 if (!btn) return;
-                colorSelect.value = btn.getAttribute('data-color-id') || '';
+                const next = btn.getAttribute('data-color-id') || '';
+                colorSelect.value = next;
                 colorSelect.dispatchEvent(new Event('change', { bubbles: true }));
             });
             sizePillRow?.addEventListener('click', (e) => {
@@ -461,6 +507,8 @@
 
             // Initial UI sync (supports old() values)
             syncActiveUi();
+            initThumbClicks();
+            updateMainImageForColor(colorSelect.value || '');
         })();
     </script>
 @endsection

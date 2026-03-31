@@ -32,7 +32,11 @@ class StorefrontController extends Controller
 
         $featuredProducts = $this->attachPricing(
             Product::query()
-                ->with(['category:id,name', 'images:id,product_id,image_path,sort_order'])
+                ->with([
+                    'category:id,name',
+                    'images:id,product_id,color_id,image_path,alt_text,sort_order',
+                    'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
+                ])
                 ->where('is_active', true)
                 ->where('is_featured', true)
                 ->latest('id')
@@ -42,7 +46,11 @@ class StorefrontController extends Controller
 
         $newArrivals = $this->attachPricing(
             Product::query()
-                ->with(['category:id,name', 'images:id,product_id,image_path,sort_order'])
+                ->with([
+                    'category:id,name',
+                    'images:id,product_id,color_id,image_path,alt_text,sort_order',
+                    'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
+                ])
                 ->where('is_active', true)
                 ->where('is_new_arrival', true)
                 ->latest('id')
@@ -139,7 +147,7 @@ class StorefrontController extends Controller
             ->with([
                 'category:id,name,slug',
                 'productType:id,name',
-                'images:id,product_id,image_path,sort_order',
+                'images:id,product_id,color_id,image_path,alt_text,sort_order',
                 'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
             ])
             ->where('is_active', true)
@@ -150,7 +158,11 @@ class StorefrontController extends Controller
 
         $relatedProducts = $this->attachPricing(
             Product::query()
-                ->with(['category:id,name', 'images:id,product_id,image_path,sort_order'])
+                ->with([
+                    'category:id,name',
+                    'images:id,product_id,color_id,image_path,alt_text,sort_order',
+                    'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
+                ])
                 ->where('is_active', true)
                 ->where('id', '!=', $product->id)
                 ->where('category_id', $product->category_id)
@@ -220,27 +232,81 @@ class StorefrontController extends Controller
     private function buildCatalogQuery(Request $request): Builder
     {
         $query = Product::query()
-            ->with(['category:id,name,slug', 'productType:id,name', 'images:id,product_id,image_path,sort_order'])
+            ->with([
+                'category:id,name,slug',
+                'productType:id,name',
+                'images:id,product_id,color_id,image_path,alt_text,sort_order',
+                'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
+            ])
             ->where('is_active', true);
 
         if ($gender = $request->query('gender')) {
             $query->where('gender_target', $gender);
         }
 
-        if ($categoryId = $request->query('category_id')) {
-            $query->where('category_id', $categoryId);
+        $categoryIds = $request->query('category_id');
+        if (filled($categoryIds)) {
+            $ids = collect(is_array($categoryIds) ? $categoryIds : explode(',', (string) $categoryIds))
+                ->filter()
+                ->map(fn ($v) => (int) $v)
+                ->unique()
+                ->values()
+                ->all();
+            if (count($ids) > 0) {
+                $query->whereIn('category_id', $ids);
+            }
         }
 
-        if ($typeId = $request->query('product_type_id')) {
-            $query->where('product_type_id', $typeId);
+        $typeIds = $request->query('product_type_id');
+        if (filled($typeIds)) {
+            $ids = collect(is_array($typeIds) ? $typeIds : explode(',', (string) $typeIds))
+                ->filter()
+                ->map(fn ($v) => (int) $v)
+                ->unique()
+                ->values()
+                ->all();
+            if (count($ids) > 0) {
+                $query->whereIn('product_type_id', $ids);
+            }
         }
 
-        if ($sizeId = $request->query('size_id')) {
-            $query->whereHas('variants', fn ($q) => $q->where('size_id', $sizeId)->where('stock_qty', '>', 0));
+        $sizeIds = $request->query('size_id');
+        if (filled($sizeIds)) {
+            $ids = collect(is_array($sizeIds) ? $sizeIds : explode(',', (string) $sizeIds))
+                ->filter()
+                ->map(fn ($v) => (int) $v)
+                ->unique()
+                ->values()
+                ->all();
+            if (count($ids) > 0) {
+                $query->whereHas('variants', fn ($q) => $q->whereIn('size_id', $ids)->where('stock_qty', '>', 0));
+            }
         }
 
-        if ($colorId = $request->query('color_id')) {
-            $query->whereHas('variants', fn ($q) => $q->where('color_id', $colorId)->where('stock_qty', '>', 0));
+        $colorIds = $request->query('color_id');
+        if (filled($colorIds)) {
+            $ids = collect(is_array($colorIds) ? $colorIds : explode(',', (string) $colorIds))
+                ->filter()
+                ->map(fn ($v) => (int) $v)
+                ->unique()
+                ->values()
+                ->all();
+            if (count($ids) > 0) {
+                $query->whereHas('variants', fn ($q) => $q->whereIn('color_id', $ids)->where('stock_qty', '>', 0));
+            }
+        }
+
+        $min = $request->query('price_min');
+        $max = $request->query('price_max');
+        if (filled($min) || filled($max)) {
+            $minVal = filled($min) ? max(0, (float) $min) : null;
+            $maxVal = filled($max) ? max(0, (float) $max) : null;
+            if ($minVal !== null) {
+                $query->where('base_price', '>=', $minVal);
+            }
+            if ($maxVal !== null) {
+                $query->where('base_price', '<=', $maxVal);
+            }
         }
 
         $sort = (string) $request->query('sort', 'latest');
@@ -257,11 +323,16 @@ class StorefrontController extends Controller
 
     private function filtersData(): array
     {
+        $priceMin = (float) Product::query()->where('is_active', true)->min('base_price');
+        $priceMax = (float) Product::query()->where('is_active', true)->max('base_price');
+
         return [
             'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'slug']),
             'productTypes' => ProductType::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'sizes' => Size::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
             'colors' => Color::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'hex_code']),
+            'priceMin' => floor($priceMin),
+            'priceMax' => ceil($priceMax),
         ];
     }
 

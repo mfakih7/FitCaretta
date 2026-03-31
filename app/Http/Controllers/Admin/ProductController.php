@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProductGalleryImageUpdateRequest;
+use App\Http\Requests\Admin\ProductGalleryImagesBatchUpdateRequest;
 use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Catalog\Category;
@@ -62,7 +64,11 @@ class ProductController extends Controller
             $createdProductId = $product->id;
 
             $this->syncVariants($product, $validated['variants'] ?? []);
-            $this->storeGalleryImages($product, $request->file('gallery_images', []));
+            $this->storeGalleryImages(
+                $product,
+                $request->file('gallery_images', []),
+                $validated['gallery_image_colors'] ?? []
+            );
         });
 
         return redirect()
@@ -100,7 +106,11 @@ class ProductController extends Controller
 
             $product->variants()->delete();
             $this->syncVariants($product, $validated['variants'] ?? []);
-            $this->storeGalleryImages($product, $request->file('gallery_images', []));
+            $this->storeGalleryImages(
+                $product,
+                $request->file('gallery_images', []),
+                $validated['gallery_image_colors'] ?? []
+            );
         });
 
         return redirect()
@@ -120,6 +130,80 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products.edit', $product)
             ->with('success', 'Gallery image deleted successfully.');
+    }
+
+    public function updateGalleryImage(ProductGalleryImageUpdateRequest $request, Product $product, ProductImage $image): RedirectResponse
+    {
+        if ((int) $image->product_id !== (int) $product->id) {
+            abort(404);
+        }
+
+        $colorId = $request->validated()['color_id'] ?? null;
+
+        $allowedColorIds = $product->variants()
+            ->whereNotNull('color_id')
+            ->pluck('color_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($colorId !== null && $colorId !== '' && ! $allowedColorIds->contains((int) $colorId)) {
+            return back()->withErrors([
+                'gallery_image_color_id' => 'Selected color is not used by this product variants.',
+            ]);
+        }
+
+        $image->update([
+            'color_id' => $colorId ?: null,
+        ]);
+
+        return redirect()
+            ->route('admin.products.edit', $product)
+            ->with('success', 'Gallery image updated successfully.');
+    }
+
+    public function updateGalleryImagesBatch(ProductGalleryImagesBatchUpdateRequest $request, Product $product): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $allowedColorIds = $product->variants()
+            ->whereNotNull('color_id')
+            ->pluck('color_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $imageColors = collect($validated['image_colors'] ?? [])
+            ->mapWithKeys(fn ($value, $key) => [(int) $key => ($value === '' || $value === null) ? null : (int) $value]);
+
+        $invalidColorIds = $imageColors
+            ->filter(fn ($v) => $v !== null)
+            ->values()
+            ->unique()
+            ->diff($allowedColorIds);
+
+        if ($invalidColorIds->isNotEmpty()) {
+            return back()->withErrors([
+                'image_colors' => 'One or more selected colors are not used by this product variants.',
+            ]);
+        }
+
+        $productImageIds = $product->images()->pluck('id')->map(fn ($id) => (int) $id)->values();
+        $unknownImageIds = $imageColors->keys()->diff($productImageIds);
+
+        if ($unknownImageIds->isNotEmpty()) {
+            abort(404);
+        }
+
+        foreach ($imageColors as $imageId => $colorId) {
+            $product->images()
+                ->whereKey($imageId)
+                ->update(['color_id' => $colorId]);
+        }
+
+        return redirect()
+            ->route('admin.products.edit', $product)
+            ->with('success', 'Gallery image colors saved successfully.');
     }
 
     public function restore(int $product): RedirectResponse
@@ -274,11 +358,11 @@ class ProductController extends Controller
         }
     }
 
-    private function storeGalleryImages(Product $product, array $files): void
+    private function storeGalleryImages(Product $product, array $files, array $colorIds): void
     {
         $nextSort = (int) $product->images()->max('sort_order');
 
-        foreach ($files as $file) {
+        foreach ($files as $index => $file) {
             if (! $file) {
                 continue;
             }
@@ -289,6 +373,7 @@ class ProductController extends Controller
             $product->images()->create([
                 'image_path' => $path,
                 'sort_order' => $nextSort,
+                'color_id' => isset($colorIds[$index]) && $colorIds[$index] ? (int) $colorIds[$index] : null,
             ]);
         }
     }

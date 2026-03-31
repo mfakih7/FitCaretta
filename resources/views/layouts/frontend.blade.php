@@ -39,13 +39,14 @@
         }
         a { color: inherit; }
         .fc-topbar {
-            background: var(--fc-soft-bg);
-            border-bottom: 1px solid var(--fc-border);
+            background: var(--fc-ink);
+            border-bottom: 1px solid rgba(255,255,255,.12);
         }
         .fc-topbar-text {
             font-size: .82rem;
-            color: var(--fc-muted);
-            letter-spacing: .2px;
+            color: rgba(255,255,255,.92);
+            font-weight: 500;
+            letter-spacing: .25px;
         }
         .fc-navbar {
             background: #ffffff;
@@ -326,6 +327,88 @@
             border-bottom: 1px solid currentColor;
             padding-bottom: 2px;
         }
+        /* Collection filters */
+        .fc-filters-card{
+            background:#fff;
+            border:1px solid var(--fc-border);
+            box-shadow: 0 14px 34px rgba(0,0,0,.04);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .fc-filters-head{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--fc-border);
+            margin-bottom: 12px;
+        }
+        .fc-filters-title{
+            font-weight: 700;
+            letter-spacing: .2px;
+            font-size: 1.05rem;
+            color: var(--fc-ink);
+        }
+        .fc-filters-sub{
+            font-size: .88rem;
+            color: var(--fc-muted);
+            margin-top: 2px;
+        }
+        .fc-filters-chip{
+            display:inline-flex;
+            align-items:center;
+            padding: .35rem .6rem;
+            border:1px solid var(--fc-border);
+            border-radius: 999px;
+            font-size: .78rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--fc-ink);
+            background: var(--fc-soft-bg);
+        }
+        .fc-filters-form{ margin: 0; }
+        .fc-filters-grid{
+            display:grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .fc-field-label{
+            display:block;
+            font-size: .72rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--fc-muted);
+            margin-bottom: 6px;
+        }
+        .fc-select{
+            border-radius: 999px;
+            border: 1px solid var(--fc-border);
+            padding-left: 14px;
+            padding-right: 36px;
+            min-height: 44px;
+            font-size: .92rem;
+            background-color: #fff;
+        }
+        .fc-select:focus{
+            border-color: var(--fc-accent);
+            box-shadow: 0 0 0 .2rem rgba(114, 174, 200, .18);
+        }
+        .fc-filters-footer{
+            display:flex;
+            justify-content:flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        @media (max-width: 1199.98px){
+            .fc-filters-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 767.98px){
+            .fc-filters-card{ padding: 14px; border-radius: 14px; }
+            .fc-filters-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .fc-filters-footer{ justify-content: stretch; }
+            .fc-filters-footer .btn{ width: 100%; }
+        }
         .fc-media {
             position: relative;
             overflow: hidden;
@@ -601,6 +684,388 @@
 </main>
 
 @include('frontend.partials.footer')
+
+<!-- Quick Add Drawer (global) -->
+<div class="offcanvas offcanvas-end fc-quickadd" tabindex="-1" id="fcQuickAdd" aria-labelledby="fcQuickAddLabel">
+    <div class="offcanvas-header border-bottom">
+        <div>
+            <div class="small text-muted">Quick Add</div>
+            <h5 class="offcanvas-title mb-0" id="fcQuickAddLabel">Add to Cart</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="d-flex gap-3 align-items-start">
+            <img id="fcQuickAddImage" src="{{ asset(\App\Models\Catalog\Product::DEFAULT_PLACEHOLDER) }}" alt="" class="rounded border" style="width:96px;height:120px;object-fit:contain;background:var(--fc-soft-bg);">
+            <div class="flex-grow-1">
+                <div class="fw-semibold" id="fcQuickAddName">—</div>
+                <div class="text-muted small" id="fcQuickAddMeta">—</div>
+                <div class="mt-1" id="fcQuickAddPrice"></div>
+            </div>
+        </div>
+
+        <form class="mt-3" method="POST" action="{{ route('cart.store') }}" id="fcQuickAddForm">
+            @csrf
+            <input type="hidden" name="product_id" id="fcQuickAddProductId">
+            <input type="hidden" name="color_id" id="fcQuickAddColorId">
+            <input type="hidden" name="size_id" id="fcQuickAddSizeId">
+
+            <div class="mt-3">
+                <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Color</div>
+                <div class="d-flex flex-wrap gap-2" id="fcQuickAddColors"></div>
+                <div class="text-danger small mt-2 d-none" id="fcQuickAddColorError"></div>
+            </div>
+
+            <div class="mt-3">
+                <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Size</div>
+                <div class="d-flex flex-wrap gap-2" id="fcQuickAddSizes"></div>
+                <div class="text-danger small mt-2 d-none" id="fcQuickAddSizeError"></div>
+            </div>
+
+            <div class="mt-3 d-flex align-items-end justify-content-between gap-2">
+                <div>
+                    <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Quantity</div>
+                    <div class="d-flex align-items-center border rounded-pill p-1" style="width:132px;">
+                        <button type="button" class="btn btn-light btn-sm rounded-pill" id="fcQuickAddQtyMinus" style="width:34px;height:34px;">-</button>
+                        <input type="number" min="1" name="quantity" id="fcQuickAddQty" value="1" class="form-control form-control-sm border-0 text-center" style="width:54px;">
+                        <button type="button" class="btn btn-light btn-sm rounded-pill" id="fcQuickAddQtyPlus" style="width:34px;height:34px;">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 mt-3 rounded-pill py-2 fw-semibold" id="fcQuickAddSubmit">
+                Add to Cart
+            </button>
+
+            <a href="#" class="fc-qa-view mt-2" id="fcQuickAddViewLink">
+                View product
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h12"></path>
+                    <path d="M13 6l6 6-6 6"></path>
+                </svg>
+            </a>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const offcanvasEl = document.getElementById('fcQuickAdd');
+        if (!offcanvasEl) return;
+
+        const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+
+        const els = {
+            img: document.getElementById('fcQuickAddImage'),
+            name: document.getElementById('fcQuickAddName'),
+            meta: document.getElementById('fcQuickAddMeta'),
+            price: document.getElementById('fcQuickAddPrice'),
+            form: document.getElementById('fcQuickAddForm'),
+            productId: document.getElementById('fcQuickAddProductId'),
+            colorId: document.getElementById('fcQuickAddColorId'),
+            sizeId: document.getElementById('fcQuickAddSizeId'),
+            colors: document.getElementById('fcQuickAddColors'),
+            sizes: document.getElementById('fcQuickAddSizes'),
+            colorErr: document.getElementById('fcQuickAddColorError'),
+            sizeErr: document.getElementById('fcQuickAddSizeError'),
+            qty: document.getElementById('fcQuickAddQty'),
+            qtyMinus: document.getElementById('fcQuickAddQtyMinus'),
+            qtyPlus: document.getElementById('fcQuickAddQtyPlus'),
+            view: document.getElementById('fcQuickAddViewLink'),
+        };
+
+        let state = { product: null, selectedColorId: '', selectedSizeId: '' };
+
+        const showErr = (el, msg) => {
+            if (!el) return;
+            el.textContent = msg || '';
+            el.classList.toggle('d-none', !msg);
+        };
+
+        const hasVariant = (sizeId, colorId) => {
+            const v = state.product?.variants || [];
+            return v.some(x => String(x.size_id) === String(sizeId) && String(x.color_id) === String(colorId) && (x.stock_qty ?? 0) > 0);
+        };
+
+        const setMainImageForColor = (colorId) => {
+            const byColor = state.product?.imagesByColor || {};
+            const key = String(colorId || '');
+            const imgs = byColor[key] || [];
+            const url = imgs?.[0]?.url || state.product?.defaultImageUrl;
+            if (url && els.img) els.img.src = url;
+        };
+
+        const setActiveBtn = (wrap, attr, value) => {
+            wrap?.querySelectorAll(`[${attr}]`).forEach(btn => {
+                btn.classList.toggle('is-active', String(btn.getAttribute(attr)) === String(value));
+            });
+        };
+
+        const render = () => {
+            const p = state.product;
+            if (!p) return;
+
+            els.name.textContent = p.name || '—';
+            els.meta.textContent = p.meta || '';
+            els.price.innerHTML = p.priceHtml || '';
+            els.productId.value = p.id;
+            els.view.href = p.url;
+            els.qty.value = '1';
+
+            // colors
+            els.colors.innerHTML = '';
+            (p.colors || []).forEach(c => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'fc-qa-swatch';
+                btn.setAttribute('data-color-id', c.id);
+                btn.title = c.name;
+                btn.innerHTML = `<span class="fc-qa-swatch-dot" style="background:${c.hex || '#111'}"></span>`;
+                btn.addEventListener('click', () => {
+                    state.selectedColorId = String(c.id);
+                    els.colorId.value = state.selectedColorId;
+                    setMainImageForColor(state.selectedColorId);
+                    setActiveBtn(els.colors, 'data-color-id', state.selectedColorId);
+                    showErr(els.colorErr, '');
+                });
+                els.colors.appendChild(btn);
+            });
+
+            // sizes
+            els.sizes.innerHTML = '';
+            (p.sizes || []).forEach(s => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'fc-qa-size';
+                btn.setAttribute('data-size-id', s.id);
+                btn.textContent = s.name;
+                btn.addEventListener('click', () => {
+                    state.selectedSizeId = String(s.id);
+                    els.sizeId.value = state.selectedSizeId;
+                    setActiveBtn(els.sizes, 'data-size-id', state.selectedSizeId);
+                    showErr(els.sizeErr, '');
+                });
+                els.sizes.appendChild(btn);
+            });
+
+            // defaults
+            state.selectedColorId = String(p.defaultColorId || '');
+            state.selectedSizeId = '';
+            els.colorId.value = state.selectedColorId;
+            els.sizeId.value = '';
+            setActiveBtn(els.colors, 'data-color-id', state.selectedColorId);
+            setMainImageForColor(state.selectedColorId);
+        };
+
+        els.qtyMinus?.addEventListener('click', () => {
+            const v = Math.max(1, parseInt(els.qty.value || '1', 10) - 1);
+            els.qty.value = String(v);
+        });
+        els.qtyPlus?.addEventListener('click', () => {
+            const v = Math.max(1, parseInt(els.qty.value || '1', 10) + 1);
+            els.qty.value = String(v);
+        });
+
+        els.form?.addEventListener('submit', (e) => {
+            const p = state.product;
+            if (!p) return;
+            const colorId = els.colorId.value || '';
+            const sizeId = els.sizeId.value || '';
+
+            if (!colorId) {
+                e.preventDefault();
+                showErr(els.colorErr, 'Please select a color.');
+                return;
+            }
+            if (!sizeId) {
+                e.preventDefault();
+                showErr(els.sizeErr, 'Please select a size.');
+                return;
+            }
+            if (!hasVariant(sizeId, colorId)) {
+                e.preventDefault();
+                showErr(els.sizeErr, 'This combination is not available.');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-fc-quickadd]');
+            if (!btn) return;
+            e.preventDefault();
+            const json = btn.getAttribute('data-fc-product');
+            if (!json) return;
+            try {
+                state.product = JSON.parse(json);
+            } catch (_) {
+                state.product = null;
+            }
+            render();
+            instance.show();
+        });
+    })();
+</script>
+<style>
+    .fc-qa-swatch{
+        width: 32px;height:32px;border-radius:999px;border:1px solid var(--fc-border);
+        background:#fff;display:inline-flex;align-items:center;justify-content:center;
+        transition: all .12s ease;
+    }
+    .fc-qa-swatch:hover{ transform: translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.06); }
+    .fc-qa-swatch.is-active{ border-color: var(--fc-ink); box-shadow:0 0 0 2px rgba(17,17,17,.12); }
+    .fc-qa-swatch-dot{ width:18px;height:18px;border-radius:999px;border:1px solid rgba(0,0,0,.12); }
+    .fc-qa-size{
+        border:1px solid var(--fc-border); background:#fff; border-radius:999px;
+        padding:.35rem .7rem; font-size:.9rem; line-height:1; transition: all .12s ease;
+    }
+    .fc-qa-size:hover{ border-color: var(--fc-border-strong); transform: translateY(-1px); }
+    .fc-qa-size.is-active{ background: var(--fc-ink); color:#fff; border-color: var(--fc-ink); }
+    .fc-quickadd{ width: min(420px, 92vw); }
+    .fc-quickadd .offcanvas-body{ padding-top: 1rem; }
+    .fc-qa-view{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        padding:.55rem .85rem;
+        border-radius:999px;
+        border:1px solid var(--fc-border);
+        color: var(--fc-ink);
+        text-decoration:none;
+        font-size:.88rem;
+        letter-spacing:.02em;
+        transition: all .14s ease;
+    }
+    .fc-qa-view svg{ width:16px; height:16px; transition: transform .14s ease; }
+    .fc-qa-view:hover{
+        border-color: var(--fc-border-strong);
+        background: #fff;
+        box-shadow: 0 10px 18px rgba(0,0,0,.04);
+        transform: translateY(-1px);
+        color: var(--fc-accent-dark);
+    }
+    .fc-qa-view:hover svg{ transform: translateX(2px); }
+    .fc-qa-view:active{ transform: translateY(0); box-shadow:none; }
+    .fc-qa-view:focus-visible{
+        outline: 0;
+        box-shadow: 0 0 0 .2rem rgba(17,17,17,.18);
+    }
+        /* Sidebar filters */
+        .fc-sidebar{
+            position: sticky;
+            top: 96px;
+        }
+        .fc-sidebar-inner{
+            background:#fff;
+            border: 1px solid var(--fc-border);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 14px 34px rgba(0,0,0,.04);
+            max-height: calc(100vh - 112px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .fc-sidebar-inner::-webkit-scrollbar{ width: 10px; }
+        .fc-sidebar-inner::-webkit-scrollbar-track{ background: transparent; }
+        .fc-sidebar-inner::-webkit-scrollbar-thumb{
+            background: rgba(17,17,17,.18);
+            border-radius: 999px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+        .fc-sidebar-inner:hover::-webkit-scrollbar-thumb{ background: rgba(17,17,17,.28); background-clip: content-box; }
+        .fc-sidebar-reset{
+            font-size: .86rem;
+            text-decoration: none;
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 1px;
+            color: var(--fc-muted);
+        }
+        .fc-sidebar-reset:hover{ color: var(--fc-accent-dark); }
+        .fc-filter-section{ padding: 14px 0; border-top: 1px solid var(--fc-border); }
+        .fc-filter-section:first-of-type{ border-top: 0; padding-top: 0; }
+        .fc-filter-title{
+            font-size: .72rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--fc-muted);
+            margin-bottom: 10px;
+        }
+        .fc-pill-row{ display:flex; flex-wrap:wrap; gap:8px; }
+        .fc-pill{
+            border: 1px solid var(--fc-border);
+            background: var(--fc-soft-bg);
+            border-radius: 999px;
+            padding: .42rem .72rem;
+            font-size: .9rem;
+            line-height: 1;
+            transition: all .12s ease;
+            color: var(--fc-ink);
+            min-height: 38px;
+        }
+        .fc-pill:hover{ border-color: var(--fc-border-strong); background:#fff; transform: translateY(-1px); }
+        .fc-pill.is-active{ background: var(--fc-ink); color:#fff; border-color: var(--fc-ink); }
+        .fc-swatch-row{ display:flex; flex-wrap:wrap; gap:10px; }
+        .fc-swatch{
+            width: 34px; height: 34px; border-radius: 999px;
+            border: 1px solid var(--fc-border-strong); background:#fff;
+            display:inline-flex; align-items:center; justify-content:center;
+            transition: all .12s ease;
+            color: var(--fc-ink);
+        }
+        .fc-swatch:hover{ transform: translateY(-1px); box-shadow:0 10px 18px rgba(0,0,0,.05); border-color: var(--fc-border-strong); }
+        .fc-swatch.is-active{ border-color: var(--fc-ink); box-shadow:0 0 0 2px rgba(17,17,17,.12); }
+        .fc-swatch-dot{
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,.18);
+            display:block;
+        }
+        .fc-swatch.is-active .fc-swatch-dot{ border-color: rgba(255,255,255,.55); }
+        .fc-price-box .form-range{ accent-color: var(--fc-ink); }
+        .fc-checklist{ display:flex; flex-direction:column; gap:10px; }
+        .fc-check{ display:flex; align-items:center; gap:10px; font-size:.92rem; color: var(--fc-ink); }
+        .fc-check input{ width: 16px; height: 16px; }
+        @media (max-width: 991.98px){
+            .fc-sidebar{ position: static; top:auto; }
+            .fc-sidebar-inner{ max-height: none; overflow: visible; }
+        }
+    .fc-card-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .fc-card-swatch{ width:18px;height:18px;border-radius:999px;border:1px solid rgba(0,0,0,.12); display:inline-block; }
+    .fc-card-swatches{ display:flex; gap:6px; flex-wrap:wrap; }
+    .fc-card-swatches button{ border:0; background:transparent; padding:0; line-height:0; }
+    .fc-card-swatches button.is-active .fc-card-swatch{ box-shadow:0 0 0 2px rgba(17,17,17,.15); border-color: var(--fc-ink); }
+    .fc-card-quickadd{
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        border: 1px solid var(--fc-border);
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fc-ink);
+        transition: all .14s ease;
+        flex: 0 0 auto;
+    }
+    .fc-card-quickadd svg{ width: 18px; height: 18px; }
+    .fc-card-quickadd:hover{
+        background: var(--fc-ink);
+        border-color: var(--fc-ink);
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(0,0,0,.06);
+    }
+    .fc-card-quickadd:active{
+        transform: translateY(0);
+        box-shadow: none;
+    }
+    .fc-card-quickadd:focus-visible{
+        outline: 0;
+        box-shadow: 0 0 0 .2rem rgba(17,17,17,.18);
+    }
+    .fc-card-img{ transition: opacity .12s ease; }
+</style>
 </body>
 </html>

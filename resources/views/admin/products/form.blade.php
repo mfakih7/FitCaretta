@@ -71,6 +71,10 @@
     <div class="col-md-3">
         <label class="form-label">Gallery Images</label>
         <input type="file" name="gallery_images[]" class="form-control" accept="image/*" multiple>
+        <div id="gallery-color-map" class="mt-2 d-none">
+            <div class="small text-muted mb-1">Assign a color to each uploaded image (optional)</div>
+            <div class="d-grid gap-2" id="gallery-color-map-rows"></div>
+        </div>
     </div>
     <div class="col-12">
         <label class="form-label">Short Description</label>
@@ -235,6 +239,44 @@
                 e.target.closest('.variant-row')?.remove();
                 reindexRows();
             }
+        });
+    })();
+</script>
+
+<script>
+    (() => {
+        const input = document.querySelector('input[name="gallery_images[]"]');
+        const wrap = document.getElementById('gallery-color-map');
+        const rows = document.getElementById('gallery-color-map-rows');
+        if (!input || !wrap || !rows) return;
+
+        const colors = @json(($colors ?? collect())->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->values());
+
+        const optionHtml = () => {
+            const base = `<option value="">No color (default)</option>`;
+            return base + colors.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        };
+
+        input.addEventListener('change', () => {
+            rows.innerHTML = '';
+            const files = Array.from(input.files || []);
+            if (files.length === 0) {
+                wrap.classList.add('d-none');
+                return;
+            }
+            wrap.classList.remove('d-none');
+
+            files.forEach((file, idx) => {
+                const item = document.createElement('div');
+                item.className = 'd-flex align-items-center justify-content-between gap-2 border rounded p-2 bg-light';
+                item.innerHTML = `
+                    <div class="small text-truncate" style="max-width: 55%;">${file.name}</div>
+                    <select class="form-select form-select-sm" name="gallery_image_colors[${idx}]" style="max-width: 45%;">
+                        ${optionHtml()}
+                    </select>
+                `;
+                rows.appendChild(item);
+            });
         });
     })();
 </script>
