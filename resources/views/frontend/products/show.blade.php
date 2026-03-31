@@ -288,13 +288,13 @@
 
                         {{-- Hidden selects kept for backend compatibility --}}
                         <div class="d-none">
-                            <select name="size_id" class="form-select" required id="variant-size">
+                            <select name="size_id" class="form-select" id="variant-size">
                                 <option value="">Select size</option>
                                 @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
                                     <option value="{{ $size->id }}" @selected((string) old('size_id') === (string) $size->id)>{{ $size->name }}</option>
                                 @endforeach
                             </select>
-                            <select name="color_id" class="form-select" required id="variant-color">
+                            <select name="color_id" class="form-select" id="variant-color">
                                 <option value="">Select color</option>
                                 @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
                                     <option value="{{ $color->id }}" @selected((string) old('color_id') === (string) $color->id)>{{ $color->name }}</option>
@@ -432,6 +432,39 @@
                 );
             };
 
+            const pickDefaultVariant = () => {
+                // Prefer a real, valid combination with stock if available.
+                const withBoth = variants.filter((v) => v.size_id && v.color_id);
+                const inStock = withBoth.find((v) => (v.stock_qty ?? 0) > 0);
+                return inStock || withBoth[0] || null;
+            };
+
+            const ensureDefaultsSelected = () => {
+                const currentSize = sizeSelect.value || '';
+                const currentColor = colorSelect.value || '';
+                if (currentSize && currentColor) return;
+
+                const def = pickDefaultVariant();
+                if (def) {
+                    if (!currentColor && def.color_id) colorSelect.value = String(def.color_id);
+                    if (!currentSize && def.size_id) sizeSelect.value = String(def.size_id);
+                } else {
+                    // Fallback to first available options (still better UX than empty)
+                    if (!currentColor) {
+                        const firstColor = allColorOptions.find((o) => !o.isPlaceholder && o.value);
+                        if (firstColor) colorSelect.value = String(firstColor.value);
+                    }
+                    if (!currentSize) {
+                        const firstSize = allSizeOptions.find((o) => !o.isPlaceholder && o.value);
+                        if (firstSize) sizeSelect.value = String(firstSize.value);
+                    }
+                }
+
+                // Sync UI + main image
+                syncActiveUi();
+                updateMainImageForColor(colorSelect.value || '');
+            };
+
             const syncActiveUi = () => {
                 const sizeId = sizeSelect.value || '';
                 const colorId = colorSelect.value || '';
@@ -493,9 +526,19 @@
                 const sizeId = sizeSelect.value || '';
                 const colorId = colorSelect.value || '';
 
-                if (!sizeId || !colorId) {
+                if (!colorId && !sizeId) {
                     e.preventDefault();
                     showValidation('Please select both size and color.');
+                    return;
+                }
+                if (!colorId) {
+                    e.preventDefault();
+                    showValidation('Please select a color.');
+                    return;
+                }
+                if (!sizeId) {
+                    e.preventDefault();
+                    showValidation('Please select a size.');
                     return;
                 }
 
@@ -508,7 +551,7 @@
             // Initial UI sync (supports old() values)
             syncActiveUi();
             initThumbClicks();
-            updateMainImageForColor(colorSelect.value || '');
+            ensureDefaultsSelected();
         })();
     </script>
 @endsection
