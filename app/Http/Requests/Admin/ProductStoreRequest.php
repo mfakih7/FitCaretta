@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ProductStoreRequest extends FormRequest
 {
@@ -33,6 +34,8 @@ class ProductStoreRequest extends FormRequest
             'main_image' => ['nullable', 'image', 'max:3072'],
             'gallery_images' => ['nullable', 'array'],
             'gallery_images.*' => ['image', 'max:3072'],
+            'gallery_image_colors' => ['nullable', 'array'],
+            'gallery_image_colors.*' => ['nullable', 'integer', 'exists:colors,id'],
             'variants' => ['nullable', 'array'],
             'variants.*.size_id' => ['nullable', 'integer', 'exists:sizes,id'],
             'variants.*.color_id' => ['nullable', 'integer', 'exists:colors,id'],
@@ -42,6 +45,38 @@ class ProductStoreRequest extends FormRequest
             'variants.*.low_stock_threshold' => ['nullable', 'integer', 'min:0'],
             'variants.*.is_active' => ['nullable', 'boolean'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $variantColorIds = collect($this->input('variants', []))
+                ->pluck('color_id')
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            $mappedColorIds = collect($this->input('gallery_image_colors', []))
+                ->filter(fn ($id) => $id !== null && $id !== '')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+            if ($mappedColorIds->isEmpty()) {
+                return;
+            }
+
+            if ($variantColorIds->isEmpty()) {
+                $validator->errors()->add('gallery_image_colors', 'Assigning image colors requires product variants with colors.');
+                return;
+            }
+
+            $invalid = $mappedColorIds->diff($variantColorIds);
+            if ($invalid->isNotEmpty()) {
+                $validator->errors()->add('gallery_image_colors', 'One or more gallery image colors are not used by this product variants.');
+            }
+        });
     }
 
     protected function prepareForValidation(): void

@@ -129,5 +129,13 @@ Route::prefix('admin')
                 'products/{product}/gallery-images/{image}',
                 [ProductController::class, 'destroyGalleryImage']
             )->name('products.gallery-images.destroy');
+            Route::put(
+                'products/{product}/gallery-images/{image}',
+                [ProductController::class, 'updateGalleryImage']
+            )->name('products.gallery-images.update');
+            Route::put(
+                'products/{product}/gallery-images',
+                [ProductController::class, 'updateGalleryImagesBatch']
+            )->name('products.gallery-images.batch');
         });
     });
