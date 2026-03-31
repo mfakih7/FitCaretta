@@ -40,6 +40,35 @@
         .fc-cart-summary .fc-row { display:flex; justify-content:space-between; gap:16px; padding: 8px 0; }
         .fc-cart-summary .fc-total { font-size: 1.15rem; font-weight: 800; color: var(--fc-ink); }
         .fc-cart-empty { border: 1px solid var(--fc-border); background: #fff; box-shadow: 0 14px 34px rgba(0,0,0,.04); }
+        .fc-cart-icon-btn{
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid var(--fc-border);
+            background: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--fc-muted);
+            transition: all .14s ease;
+            flex: 0 0 auto;
+        }
+        .fc-cart-icon-btn svg{ width: 18px; height: 18px; }
+        .fc-cart-icon-btn:hover{
+            border-color: var(--fc-border-strong);
+            color: var(--fc-ink);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(0,0,0,.05);
+        }
+        .fc-cart-icon-btn.is-danger:hover{
+            border-color: rgba(220, 38, 38, .35);
+            color: #dc2626;
+        }
+        .fc-cart-icon-btn:active{ transform: translateY(0); box-shadow:none; }
+        .fc-cart-icon-btn:focus-visible{
+            outline: 0;
+            box-shadow: 0 0 0 .2rem rgba(17,17,17,.18);
+        }
     </style>
 
     <div class="fc-cart-head d-flex justify-content-between align-items-end mb-3">
@@ -51,7 +80,22 @@
             <form method="POST" action="{{ route('cart.clear') }}">
                 @csrf
                 @method('DELETE')
-                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Clear all cart items?')">Clear Cart</button>
+                <button
+                    class="fc-cart-icon-btn is-danger"
+                    type="submit"
+                    onclick="return confirm('Clear all cart items?')"
+                    title="Clear cart"
+                    aria-label="Clear cart"
+                    data-bs-toggle="tooltip"
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4h8v2"></path>
+                        <path d="M6 6l1 16h10l1-16"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                    </svg>
+                </button>
             </form>
         @endif
     </div>
@@ -95,7 +139,22 @@
                                         <form method="POST" action="{{ route('cart.destroy', $item['key']) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Remove this item?')">Remove</button>
+                                            <button
+                                                class="fc-cart-icon-btn is-danger"
+                                                type="submit"
+                                                onclick="return confirm('Remove this item?')"
+                                                title="Remove item"
+                                                aria-label="Remove item"
+                                                data-bs-toggle="tooltip"
+                                            >
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M3 6h18"></path>
+                                                    <path d="M8 6V4h8v2"></path>
+                                                    <path d="M6 6l1 16h10l1-16"></path>
+                                                    <path d="M10 11v6"></path>
+                                                    <path d="M14 11v6"></path>
+                                                </svg>
+                                            </button>
                                         </form>
                                     </div>
 
@@ -153,6 +212,12 @@
             (() => {
                 const wrap = document.querySelector('.fc-main');
                 if (!wrap) return;
+
+                // Enable Bootstrap tooltips for icon actions
+                try {
+                    wrap.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => new bootstrap.Tooltip(el));
+                } catch (_) {}
+
                 wrap.addEventListener('click', (e) => {
                     const minus = e.target.closest('.fc-qty-minus');
                     const plus = e.target.closest('.fc-qty-plus');

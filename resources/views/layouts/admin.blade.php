@@ -106,9 +106,124 @@
         .fc-admin-content .badge {
             font-weight: 500;
         }
+        /* Branded loader (admin) */
+        .fc-loader{
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .fc-loader.is-active{ display:flex; }
+        .fc-loader-backdrop{
+            position:absolute;
+            inset:0;
+            background: radial-gradient(1200px 600px at 50% 30%, rgba(245,247,251,.96), rgba(245,247,251,.84));
+            backdrop-filter: blur(10px);
+        }
+        .fc-loader-stage{
+            position: relative;
+            width: 148px;
+            height: 148px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .fc-loader-glow{
+            position:absolute;
+            inset: -18px;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(37, 99, 235, .18), rgba(37, 99, 235, 0) 62%),
+                radial-gradient(circle at 50% 60%, rgba(0,0,0,.08), rgba(0,0,0,0) 62%);
+            animation: fcGlow 1.7s ease-in-out infinite;
+        }
+        .fc-loader-walk{
+            position: relative;
+            width: 96px;
+            height: 96px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .fc-loader-shadow{
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            width: 58px;
+            height: 14px;
+            transform: translateX(-50%);
+            border-radius: 999px;
+            background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.22), rgba(0,0,0,0) 68%);
+            filter: blur(.2px);
+            animation: fcShadowWalk 1.1s ease-in-out infinite;
+        }
+        .fc-loader-mark{
+            width: 64px;
+            height: 64px;
+            filter: drop-shadow(0 16px 30px rgba(0,0,0,.08));
+            animation: fcCarettaWalk 1.1s cubic-bezier(.45,0,.2,1) infinite;
+            transform-origin: 55% 65%;
+        }
+        .fc-loader-mark .fc-turtle-shell{ fill: var(--fc-admin-dark); }
+        .fc-loader-mark .fc-turtle-head{ fill: var(--fc-admin-dark); opacity: .96; }
+        .fc-loader-mark .fc-turtle-flipper{ fill: var(--fc-admin-dark); opacity: .96; }
+        .fc-loader-dots{
+            position:absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display:flex;
+            gap: 6px;
+        }
+        .fc-loader-dots span{
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(17,17,17,.45);
+            animation: fcDot 1s ease-in-out infinite;
+        }
+        .fc-loader-dots span:nth-child(2){ animation-delay: .12s; opacity:.78; }
+        .fc-loader-dots span:nth-child(3){ animation-delay: .24s; opacity:.55; }
+        .fc-loader.is-hidden{
+            display:flex;
+            pointer-events:none;
+            opacity: 0;
+            transition: opacity .34s ease;
+        }
+        .fc-loader.is-active{ opacity: 1; }
+
+        @keyframes fcCarettaWalk{
+            0%   { transform: translateX(-3px) translateY(0) rotate(-1.2deg) scale(1); }
+            20%  { transform: translateX(-1px) translateY(-1.6px) rotate(0.6deg) scale(1.01); }
+            50%  { transform: translateX(3px) translateY(0) rotate(1.2deg) scale(1); }
+            80%  { transform: translateX(1px) translateY(-1.6px) rotate(-0.6deg) scale(1.01); }
+            100% { transform: translateX(-3px) translateY(0) rotate(-1.2deg) scale(1); }
+        }
+        @keyframes fcShadowWalk{
+            0%   { transform: translateX(-50%) scaleX(.92); opacity: .42; }
+            20%  { transform: translateX(-48%) scaleX(.80); opacity: .28; }
+            50%  { transform: translateX(-50%) scaleX(.92); opacity: .42; }
+            80%  { transform: translateX(-52%) scaleX(.80); opacity: .28; }
+            100% { transform: translateX(-50%) scaleX(.92); opacity: .42; }
+        }
+        @keyframes fcGlow {
+            0%,100% { opacity: .65; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        @keyframes fcDot {
+            0%,100% { transform: translateY(0); opacity: .35; }
+            50% { transform: translateY(-3px); opacity: .95; }
+        }
+
+        @media (prefers-reduced-motion: reduce){
+            .fc-loader-glow, .fc-loader-mark, .fc-loader-dots span, .fc-loader-shadow { animation: none !important; }
+        }
     </style>
 </head>
 <body>
+@include('partials.loader')
 <nav class="navbar navbar-expand-lg navbar-dark fc-admin-topbar">
     <div class="container-fluid">
         <a class="navbar-brand fc-admin-brand" href="{{ route('admin.dashboard') }}">
@@ -190,6 +305,24 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     lucide.createIcons();
+</script>
+<script>
+    (() => {
+        const loader = document.getElementById('fcGlobalLoader');
+        if (!loader) return;
+
+        const hide = () => {
+            loader.classList.remove('is-active');
+            loader.classList.add('is-hidden');
+            setTimeout(() => loader.remove(), 600);
+        };
+
+        const failsafe = setTimeout(hide, 6500);
+        window.addEventListener('load', () => {
+            clearTimeout(failsafe);
+            setTimeout(hide, 120);
+        }, { once: true });
+    })();
 </script>
 </body>
 </html>
