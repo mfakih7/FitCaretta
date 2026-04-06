@@ -23,10 +23,7 @@
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border:1px solid #eeeeee; border-radius:12px; overflow:hidden;">
                 <tr>
                     <td align="center" style="padding:24px 24px 16px; border-bottom:1px solid #eeeeee;">
-                        <img src="{{ $logoUrl }}" alt="{{ $storeName }}" style="height:40px; width:auto; display:block; margin:0 auto 10px;">
-                        <div style="font-size:14px; letter-spacing:0.08em; text-transform:uppercase; color:#111111; font-weight:700;">
-                            {{ $storeName }}
-                        </div>
+                        <img src="{{ $logoUrl }}" alt="{{ $storeName }}" style="height:40px; width:auto; display:block; margin:0 auto;">
                     </td>
                 </tr>
 
@@ -144,9 +141,8 @@
                 <tr>
                     <td style="padding:16px 24px 22px; border-top:1px solid #eeeeee; background:#ffffff;">
                         <div style="font-size:12px; color:#777777; line-height:1.6; text-align:center;">
-                            {{ $storeName }}
                             @if($supportEmail !== '')
-                                &nbsp;•&nbsp; <a href="mailto:{{ $supportEmail }}" style="color:#111111; text-decoration:none;">{{ $supportEmail }}</a>
+                                <a href="mailto:{{ $supportEmail }}" style="color:#111111; text-decoration:none;">{{ $supportEmail }}</a>
                             @endif
                             <br>
                             <span style="color:#999999;">This is an automated email. Please keep it for your records.</span>

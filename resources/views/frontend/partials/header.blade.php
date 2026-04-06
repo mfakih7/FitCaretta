@@ -36,6 +36,11 @@
                                 <a class="nav-link @if(request()->routeIs('about.show')) active @endif" href="{{ route('about.show') }}" @if(request()->routeIs('about.show')) aria-current="page" @endif>About</a>
                             </li>
                         @endif
+                        @if(!empty($showFeedbackNav))
+                            <li class="nav-item">
+                                <a class="nav-link @if(request()->routeIs('feedback.*')) active @endif" href="{{ route('feedback.create') }}" @if(request()->routeIs('feedback.*')) aria-current="page" @endif>Feedback</a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>

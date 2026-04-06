@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Setting;
 use App\Models\Content\AboutPage;
+use App\Models\FeedbackSetting;
 use Illuminate\Support\Arr;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->applyStoreSettingsOverrides();
         $this->composeFrontendAboutNav();
+        $this->composeFrontendFeedbackNav();
     }
 
     private function composeFrontendAboutNav(): void
@@ -45,6 +47,22 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('showAboutNav', $enabled);
+        });
+    }
+
+    private function composeFrontendFeedbackNav(): void
+    {
+        View::composer('frontend.partials.header', function ($view) {
+            $enabled = false;
+            try {
+                if (Schema::hasTable('feedback_settings')) {
+                    $enabled = (bool) FeedbackSetting::query()->value('is_enabled');
+                }
+            } catch (\Throwable) {
+                $enabled = false;
+            }
+
+            $view->with('showFeedbackNav', $enabled);
         });
     }
 

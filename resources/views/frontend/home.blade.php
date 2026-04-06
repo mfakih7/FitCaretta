@@ -4,7 +4,7 @@
 
 @section('content')
     @if(($slides ?? collect())->isNotEmpty())
-        <section class="fc-hero mb-4 mb-lg-5 p-0">
+        <section class="fc-hero fc-hero-fullbleed mb-4 mb-lg-5 p-0">
             <div id="fcHomeHeroCarousel" class="carousel slide fc-hero-carousel" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
                 <div class="carousel-indicators">
                     @foreach($slides as $i => $slide)
@@ -30,9 +30,6 @@
                                     <div class="mx-auto" style="max-width: 1320px;">
                                     <div class="row align-items-center gy-4">
                                         <div class="col-lg-7">
-                                            @if(filled($slide->badge))
-                                                <span class="fc-pill mb-3">{{ $slide->badge }}</span>
-                                            @endif
                                             <h1 class="fc-home-hero-title fw-semibold mb-3">{{ $slide->title ?: config('store.hero_title') }}</h1>
                                             @if(filled($slide->subtitle))
                                                 <p class="fc-home-hero-sub mb-4">{{ $slide->subtitle }}</p>
@@ -57,24 +54,16 @@
                     @endforeach
                 </div>
 
-                <button class="carousel-control-prev" type="button" data-bs-target="#fcHomeHeroCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#fcHomeHeroCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
+      
             </div>
         </section>
     @else
-        <section class="fc-hero p-0 mb-4 mb-lg-5">
+        <section class="fc-hero fc-hero-fullbleed p-0 mb-4 mb-lg-5">
             <div class="container-fluid px-3 px-lg-5">
                 <div class="mx-auto" style="max-width: 1320px;">
                     <div class="py-4 py-md-5">
                         <div class="row align-items-center gy-4">
                             <div class="col-lg-7">
-                                <span class="fc-pill mb-3">New Collections</span>
                                 <h1 class="fc-home-hero-title fw-semibold mb-3">{{ config('store.hero_title') }}</h1>
                                 <p class="fc-home-hero-sub mb-4">
                                     Premium performance essentials inspired by modern fashion. Shop refined men and women looks with clean cuts and confident comfort.

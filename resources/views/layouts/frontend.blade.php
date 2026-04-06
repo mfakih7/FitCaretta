@@ -37,6 +37,8 @@
             background: var(--fc-bg);
             color: #2a2a2a;
         }
+        /* Prevent horizontal scroll from full-bleed sections */
+        html, body { overflow-x: hidden; }
         a { color: inherit; }
         .fc-topbar {
             background: var(--fc-ink);
@@ -365,6 +367,13 @@
             background: linear-gradient(130deg, #1b1b1b, #3b3b3b);
             color: #fff;
             border-radius: 0;
+        }
+        /* Full-bleed hero inside a .container page layout */
+        .fc-hero-fullbleed {
+            width: 100vw;
+            max-width: 100vw;
+            margin-left: calc(50% - 50vw);
+            margin-right: calc(50% - 50vw);
         }
         .fc-hero-carousel .carousel-item {
             min-height: clamp(360px, 46vh, 520px);
@@ -825,12 +834,13 @@
             </div>
         @endif
         @if($errors->any())
-            <div class="alert alert-danger">
+            <div class="alert alert-danger alert-dismissible fade show">
                 <ul class="mb-0">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
         @yield('content')
@@ -903,6 +913,32 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const AUTO_DISMISS_MS = 5000;
+        const alerts = Array.from(document.querySelectorAll('.alert'));
+        if (!alerts.length) return;
+
+        alerts.forEach((el) => {
+            // Skip if already dismissed.
+            if (!document.body.contains(el)) return;
+
+            setTimeout(() => {
+                if (!document.body.contains(el)) return;
+
+                // Prefer Bootstrap's native close animation/cleanup when available.
+                if (window.bootstrap?.Alert) {
+                    window.bootstrap.Alert.getOrCreateInstance(el).close();
+                    return;
+                }
+
+                el.classList.add('fade');
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 600);
+            }, AUTO_DISMISS_MS);
+        });
+    })();
+</script>
 <script>
     (() => {
         const loader = document.getElementById('fcGlobalLoader');

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\AboutController;
+use App\Http\Controllers\Frontend\FeedbackController;
 use App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\Frontend\StorefrontController;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +46,8 @@ Route::get('/products/{slug}', [StorefrontController::class, 'productDetails'])-
 Route::get('/search', [StorefrontController::class, 'search'])->name('search');
 Route::get('/offers', [StorefrontController::class, 'offers'])->name('offers');
 Route::get('/about', [AboutController::class, 'show'])->name('about.show');
+Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::patch('/cart/{key}', [CartController::class, 'update'])->name('cart.update');
@@ -125,6 +128,12 @@ Route::prefix('admin')
             Route::get('reports/orders/export', [OrdersReportController::class, 'exportCsv'])->name('reports.orders.export');
             Route::get('about', [AdminAboutPageController::class, 'edit'])->name('about.edit');
             Route::put('about', [AdminAboutPageController::class, 'update'])->name('about.update');
+
+            Route::get('feedback', [\App\Http\Controllers\Admin\FeedbackSettingsController::class, 'edit'])->name('feedback.settings.edit');
+            Route::put('feedback', [\App\Http\Controllers\Admin\FeedbackSettingsController::class, 'update'])->name('feedback.settings.update');
+            Route::get('feedback/submissions', [\App\Http\Controllers\Admin\FeedbackSubmissionController::class, 'index'])->name('feedback.submissions.index');
+            Route::get('feedback/submissions/{feedbackSubmission}', [\App\Http\Controllers\Admin\FeedbackSubmissionController::class, 'show'])->name('feedback.submissions.show');
+            Route::patch('feedback/submissions/{feedbackSubmission}/status', [\App\Http\Controllers\Admin\FeedbackSubmissionController::class, 'updateStatus'])->name('feedback.submissions.status');
             Route::delete(
                 'products/{product}/gallery-images/{image}',
                 [ProductController::class, 'destroyGalleryImage']

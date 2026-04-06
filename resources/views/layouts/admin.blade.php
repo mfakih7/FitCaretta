@@ -286,6 +286,9 @@
                 <a href="{{ route('admin.about.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.about.*') ? 'active' : '' }}">
                     <i data-lucide="info"></i><span>About</span>
                 </a>
+                <a href="{{ route('admin.feedback.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">
+                    <i data-lucide="message-square"></i><span>Feedback</span>
+                </a>
                 <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                     <i data-lucide="settings"></i><span>Settings</span>
                 </a>
@@ -305,6 +308,30 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     lucide.createIcons();
+</script>
+<script>
+    (() => {
+        const AUTO_DISMISS_MS = 5000;
+        const alerts = Array.from(document.querySelectorAll('.alert'));
+        if (!alerts.length) return;
+
+        alerts.forEach((el) => {
+            if (!document.body.contains(el)) return;
+
+            setTimeout(() => {
+                if (!document.body.contains(el)) return;
+
+                if (window.bootstrap?.Alert) {
+                    window.bootstrap.Alert.getOrCreateInstance(el).close();
+                    return;
+                }
+
+                el.classList.add('fade');
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 600);
+            }, AUTO_DISMISS_MS);
+        });
+    })();
 </script>
 <script>
     (() => {
