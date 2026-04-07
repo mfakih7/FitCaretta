@@ -1190,7 +1190,9 @@
         /* Sidebar filters */
         .fc-sidebar{
             position: sticky;
-            top: 96px;
+            --fc-sidebar-top: 190px;
+            top: var(--fc-sidebar-top);
+            align-self: flex-start;
         }
         .fc-sidebar-inner{
             background:#fff;
@@ -1198,9 +1200,12 @@
             border-radius: 16px;
             padding: 16px;
             box-shadow: 0 14px 34px rgba(0,0,0,.04);
-            max-height: calc(100vh - 112px);
-            overflow-y: auto;
-            overscroll-behavior: contain;
+            max-height: calc(100dvh - var(--fc-sidebar-top) - 16px);
+            overflow: auto;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+            touch-action: pan-y;
         }
         .fc-sidebar-inner::-webkit-scrollbar{ width: 10px; }
         .fc-sidebar-inner::-webkit-scrollbar-track{ background: transparent; }
