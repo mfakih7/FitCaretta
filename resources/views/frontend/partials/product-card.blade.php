@@ -49,50 +49,75 @@
     ];
 @endphp
 
-<div class="fc-product-card fc-hover-zoom h-100">
-    <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none d-block">
-        <div class="fc-media">
-            <img src="{{ $product->main_image_url }}" alt="{{ $product->name }}" class="fc-card-img" data-fc-default="{{ $product->main_image_url }}">
-            @if($isNew || $discount)
-                <div class="fc-badges">
-                    @if($isNew)
-                        <span class="fc-badge fc-badge-dark">New</span>
-                    @endif
-                    @if($discount)
-                        <span class="fc-badge fc-badge-dark">
-                            @if($discount->type === 'percentage')
-                                {{ (float) $discount->value }}% Off
-                            @else
-                                Save {{ config('store.currency_symbol') }}{{ number_format((float) $discount->value, 2) }}
-                            @endif
-                        </span>
-                    @endif
-                </div>
-            @endif
-        </div>
-    </a>
-
-    <div class="p-3 d-flex flex-column gap-2">
-        <div class="d-flex flex-column">
-            <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none">
-                <h3 class="fc-product-title">{{ $product->name }}</h3>
-            </a>
-            <div class="fc-product-sub text-capitalize">
-                {{ $product->gender_target->value }}@if($product->category?->name) / {{ $product->category?->name }}@endif
+<article class="fc-product-card fc-pcard h-100">
+    <div class="fc-pcard-media">
+        <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none d-block">
+            <div class="fc-media">
+                <img src="{{ $product->main_image_url }}" alt="{{ $product->name }}" class="fc-card-img" data-fc-default="{{ $product->main_image_url }}">
             </div>
+        </a>
+
+        @if($isNew || $discount)
+            <div class="fc-badges">
+                @if($isNew)
+                    <span class="fc-badge fc-badge-dark">NEW</span>
+                @endif
+                @if($discount)
+                    <span class="fc-badge fc-badge-sale">
+                        @if($discount->type === 'percentage')
+                            {{ (float) $discount->value }}% OFF
+                        @else
+                            SAVE {{ config('store.currency_symbol') }}{{ number_format((float) $discount->value, 2) }}
+                        @endif
+                    </span>
+                @endif
+            </div>
+        @endif
+
+        <button
+            type="button"
+            class="fc-card-quickadd fc-pcard-quickadd"
+            data-fc-quickadd
+            data-fc-product='@json($quickAddPayload)'
+            aria-label="Add to cart"
+        >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 6h15l-1.5 9h-13z"></path>
+                <path d="M6 6l-2-2H2"></path>
+                <circle cx="9" cy="20" r="1.25"></circle>
+                <circle cx="18" cy="20" r="1.25"></circle>
+            </svg>
+        </button>
+    </div>
+
+    <div class="fc-pcard-body">
+        <div class="fc-pcard-kicker text-capitalize">
+            {{ $product->category?->name ?: $product->gender_target->value }}
         </div>
 
-        <div class="d-flex align-items-baseline gap-2">
+        <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none">
+            <h3 class="fc-pcard-title">{{ $product->name }}</h3>
+        </a>
+
+        <div class="fc-pcard-price">
             @if($discount)
-                <div class="fc-price-old">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['base_price'], 2) }}</div>
-                <div class="fc-price-new">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['effective_price'], 2) }}</div>
+                <span class="fc-price-old">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['base_price'], 2) }}</span>
+                <span class="fc-price-new">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['effective_price'], 2) }}</span>
             @else
-                <div class="fc-price-new">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['base_price'], 2) }}</div>
+                <span class="fc-price-new">{{ config('store.currency_symbol') }}{{ number_format($product->pricing['base_price'], 2) }}</span>
             @endif
         </div>
 
-        <div class="fc-card-actions pt-1">
-            <div class="fc-card-swatches" aria-label="Available colors">
+        @if($sizes->isNotEmpty())
+            <div class="fc-pcard-sizes" aria-label="Available sizes">
+                @foreach($sizes->take(6) as $size)
+                    <span class="fc-pcard-size">{{ $size->name }}</span>
+                @endforeach
+            </div>
+        @endif
+
+        @if($colors->isNotEmpty())
+            <div class="fc-card-swatches fc-pcard-swatches" aria-label="Available colors">
                 @foreach($colors as $color)
                     <button
                         type="button"
@@ -107,24 +132,9 @@
                     </button>
                 @endforeach
             </div>
-
-            <button
-                type="button"
-                class="fc-card-quickadd"
-                data-fc-quickadd
-                data-fc-product='@json($quickAddPayload)'
-                aria-label="Add to cart"
-            >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M6 6h15l-1.5 9h-13z"></path>
-                    <path d="M6 6l-2-2H2"></path>
-                    <circle cx="9" cy="20" r="1.25"></circle>
-                    <circle cx="18" cy="20" r="1.25"></circle>
-                </svg>
-            </button>
-        </div>
+        @endif
     </div>
-</div>
+</article>
 
 <script>
     (() => {

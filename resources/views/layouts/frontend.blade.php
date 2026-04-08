@@ -592,62 +592,112 @@
             display: block;
             text-decoration: none;
             color: var(--fc-ink);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--fc-shadow-xs);
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .fc-category-tile:hover{
+            transform: translateY(-4px);
+            border-color: var(--fc-border-strong);
+            box-shadow: var(--fc-shadow-sm);
         }
         .fc-category-tile .fc-media {
-            aspect-ratio: 4 / 5;
-            background: var(--fc-soft-bg);
+            height: 450px;
+            background: linear-gradient(180deg, #f7f7f7, #f2f2f2);
+            width: 100%;
+            overflow: hidden;
         }
-        /* Categories often have mixed image dimensions; contain looks cleaner than aggressive cropping. */
         .fc-category-tile .fc-media img {
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             object-position: center;
-            padding: 14px;
+            padding: 10px;
+            display: block;
+            transform: scale(1);
+            transition: transform .32s ease;
         }
-        .fc-category-tile.fc-hover-zoom:hover .fc-media img { transform: scale(1.02); }
+        .fc-category-tile:hover .fc-media img{ transform: scale(1.02); }
+        .fc-category-tile .fc-media::after{
+            content:'';
+            position:absolute;
+            inset:0;
+            background: linear-gradient(180deg, rgba(0,0,0,.00) 58%, rgba(0,0,0,.22));
+            pointer-events:none;
+            opacity: .7;
+            transition: opacity .22s ease;
+        }
+        .fc-category-tile:hover .fc-media::after{ opacity: .85; }
         .fc-category-tile-label {
             position: absolute;
-            top: 14px;
-            left: 14px;
+            top: 12px;
+            left: 12px;
             display: inline-flex;
             align-items: center;
             gap: .35rem;
-            padding: .35rem .55rem;
-            border: 1px solid rgba(255,255,255,.55);
-            background: rgba(17,17,17,.35);
+            padding: .28rem .55rem;
+            border: 1px solid rgba(255,255,255,.30);
+            background: rgba(17,17,17,.55);
             color: #fff;
             font-size: .72rem;
-            letter-spacing: .11em;
+            letter-spacing: .10em;
             text-transform: uppercase;
-            backdrop-filter: blur(6px);
+            backdrop-filter: blur(10px);
         }
-        .fc-category-tile-body { padding: 14px; }
+        .fc-category-tile-body { padding: 16px 18px 18px; }
         .fc-category-tile-title {
-            font-size: 1.02rem;
-            letter-spacing: .2px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: .1px;
             margin: 0;
             color: var(--fc-ink);
         }
-        .fc-category-tile-meta { color: var(--fc-muted); font-size: .88rem; }
+        .fc-category-tile-meta { color: rgba(17,17,17,.55); font-size: .9rem; }
+        .fc-category-tile .fc-link-underline{
+            color: var(--fc-ink);
+            border-bottom-color: rgba(17,17,17,.35);
+            transition: color .18s ease, border-color .18s ease, transform .18s ease;
+        }
+        .fc-category-tile:hover .fc-link-underline{
+            color: var(--fc-accent-dark);
+            border-bottom-color: var(--fc-accent-dark);
+            transform: translateX(2px);
+        }
 
         /* Product tiles */
         .fc-product-card {
             border: 1px solid var(--fc-border);
-            border-radius: 0;
+            border-radius: 16px;
             background: #fff;
-            transition: border-color .2s ease, transform .2s ease;
+            overflow: hidden;
+            box-shadow: var(--fc-shadow-xs);
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
         }
-        .fc-product-card:hover { transform: translateY(-1px); border-color: var(--fc-border-strong); }
+        .fc-product-card:hover{
+            transform: translateY(-4px);
+            border-color: var(--fc-border-strong);
+            box-shadow: var(--fc-shadow-sm);
+        }
         .fc-product-card .fc-media {
-            aspect-ratio: 4 / 5;
-            background: var(--fc-soft-bg);
+            height: 280px;
+            background: linear-gradient(180deg, #f7f7f7, #f2f2f2);
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            overflow: hidden;
         }
-        /* Product images: keep a consistent frame, avoid awkward crops for mixed assets */
+        /* Product images: show full product (reduce cropping) */
         .fc-product-card .fc-media img {
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             object-position: center;
-            padding: 10px;
+            padding: 12px;
+            display: block;
+            transform: scale(1);
+            transition: transform .28s ease, opacity .18s ease;
         }
-        .fc-product-card.fc-hover-zoom:hover .fc-media img { transform: scale(1.02); }
+        .fc-product-card:hover .fc-media img{ transform: scale(1.02); }
         .fc-product-title {
             font-size: .95rem;
             font-weight: 500;
@@ -656,6 +706,90 @@
             color: var(--fc-ink);
         }
         .fc-product-sub { font-size: .82rem; color: var(--fc-muted); }
+
+        /* Product card (modern premium layout) */
+        .fc-pcard-media{ position: relative; }
+        .fc-pcard-media::after{
+            content:'';
+            position:absolute;
+            inset:0;
+            background: linear-gradient(180deg, rgba(0,0,0,.00) 58%, rgba(0,0,0,.18));
+            pointer-events:none;
+            opacity: .55;
+            transition: opacity .22s ease;
+            z-index: 1;
+        }
+        .fc-product-card:hover .fc-pcard-media::after{ opacity: .75; }
+        .fc-pcard-media .fc-media{ position: relative; z-index: 0; }
+        .fc-pcard-media .fc-badges{ z-index: 3; }
+        .fc-pcard-quickadd{
+            position:absolute;
+            right: 12px;
+            bottom: 12px;
+            z-index: 4;
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+        }
+        .fc-product-card:hover .fc-pcard-quickadd{
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Fix quick-add icon alignment + reliable centering */
+        .fc-card-quickadd{
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            border: 1px solid rgba(17,17,17,.14);
+            background: rgba(255,255,255,.92);
+            display: grid;
+            place-items: center;
+            color: var(--fc-ink);
+            box-shadow: 0 10px 22px rgba(0,0,0,.10);
+            transition: transform .26s ease, box-shadow .26s ease, background-color .26s ease, border-color .26s ease, color .26s ease;
+        }
+        .fc-card-quickadd svg{
+            width: 18px;
+            height: 18px;
+            display:block;
+        }
+        .fc-card-quickadd:hover{
+            background: var(--fc-ink);
+            border-color: var(--fc-ink);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0,0,0,.18);
+        }
+        .fc-card-quickadd:active{ transform: translateY(0); box-shadow: 0 10px 22px rgba(0,0,0,.10); }
+        .fc-card-quickadd:focus-visible{ outline: 0; box-shadow: 0 0 0 .2rem rgba(17,17,17,.18), 0 14px 30px rgba(0,0,0,.14); }
+        .fc-pcard-body{
+            padding: 16px 18px 18px;
+            display:flex;
+            flex-direction:column;
+            gap: 10px;
+        }
+        .fc-pcard-kicker{
+            font-size: .78rem;
+            color: rgba(17,17,17,.55);
+            letter-spacing: .10em;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        .fc-pcard-title{
+            margin: 0;
+            font-size: 1.02rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: .1px;
+            color: var(--fc-ink);
+        }
+        .fc-pcard-price{
+            display:flex;
+            align-items: baseline;
+            gap: 10px;
+        }
         .fc-badge {
             display: inline-flex;
             align-items: center;
@@ -667,19 +801,63 @@
             text-transform: uppercase;
             color: var(--fc-ink);
         }
-        .fc-badge-dark { border-color: rgba(255,255,255,.55); background: rgba(17,17,17,.35); color: #fff; backdrop-filter: blur(6px); }
+        .fc-badge-dark { border-color: rgba(255,255,255,.35); background: rgba(17,17,17,.55); color: #fff; backdrop-filter: blur(10px); }
+        .fc-badge-sale{
+            border-color: rgba(255,255,255,.25);
+            background: linear-gradient(135deg, rgba(255,72,72,.85), rgba(255,0,92,.70));
+            color:#fff;
+            backdrop-filter: blur(10px);
+        }
         .fc-badges {
             position: absolute;
             top: 14px;
-            right: 14px;
+            left: 14px;
             display: flex;
             flex-direction: column;
             gap: 6px;
-            align-items: flex-end;
+            align-items: flex-start;
         }
 
         .fc-price-old { text-decoration: line-through; color: #9a9a9a; font-size: .9rem; }
         .fc-price-new { font-weight: 700; color: #111; }
+
+        /* Swatches */
+        .fc-card-swatch{
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,.14);
+            display:inline-block;
+            transition: transform .16s ease;
+        }
+        .fc-card-swatches{ display:flex; gap:8px; flex-wrap:wrap; }
+        .fc-card-swatches button{ border:0; background:transparent; padding:0; line-height:0; }
+        .fc-card-swatches button:hover .fc-card-swatch{ transform: scale(1.08); }
+        .fc-card-swatches button.is-active .fc-card-swatch{ box-shadow:0 0 0 2px rgba(17,17,17,.16); border-color: var(--fc-ink); }
+
+        /* Size pills */
+        .fc-pcard-sizes{
+            display:flex;
+            flex-wrap:wrap;
+            gap: 8px;
+        }
+        .fc-pcard-size{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            height: 30px;
+            padding: 0 10px;
+            border: 1px solid rgba(17,17,17,.12);
+            border-radius: 999px;
+            font-size: .82rem;
+            color: rgba(17,17,17,.72);
+            background: #fff;
+            transition: all .18s ease;
+        }
+        .fc-pcard-size:hover{
+            border-color: rgba(17,17,17,.22);
+            color: var(--fc-ink);
+        }
         .fc-pill {
             display: inline-block;
             border: 1px solid #ffffff66;
@@ -1274,39 +1452,7 @@
             .fc-sidebar-inner{ max-height: none; overflow: visible; }
         }
     .fc-card-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .fc-card-swatch{ width:18px;height:18px;border-radius:999px;border:1px solid rgba(0,0,0,.12); display:inline-block; }
-    .fc-card-swatches{ display:flex; gap:6px; flex-wrap:wrap; }
-    .fc-card-swatches button{ border:0; background:transparent; padding:0; line-height:0; }
-    .fc-card-swatches button.is-active .fc-card-swatch{ box-shadow:0 0 0 2px rgba(17,17,17,.15); border-color: var(--fc-ink); }
-    .fc-card-quickadd{
-        width: 40px;
-        height: 40px;
-        border-radius: 999px;
-        border: 1px solid var(--fc-border);
-        background: #fff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--fc-ink);
-        transition: all .14s ease;
-        flex: 0 0 auto;
-    }
-    .fc-card-quickadd svg{ width: 18px; height: 18px; }
-    .fc-card-quickadd:hover{
-        background: var(--fc-ink);
-        border-color: var(--fc-ink);
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 10px 18px rgba(0,0,0,.06);
-    }
-    .fc-card-quickadd:active{
-        transform: translateY(0);
-        box-shadow: none;
-    }
-    .fc-card-quickadd:focus-visible{
-        outline: 0;
-        box-shadow: 0 0 0 .2rem rgba(17,17,17,.18);
-    }
+    /* (deduped styles) card swatches/quickadd are defined above for the new card system */
     .fc-card-img{ transition: opacity .12s ease; }
 </style>
 </body>
