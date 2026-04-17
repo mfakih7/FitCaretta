@@ -15,7 +15,7 @@ class CartService
     {
     }
 
-    public function add(int $productId, int $sizeId, int $colorId, int $quantity): array
+    public function add(int $productId, ?int $sizeId, ?int $colorId, int $quantity): array
     {
         $product = Product::query()
             ->with(['images:id,product_id,image_path,sort_order', 'variants' => fn ($q) => $q->where('is_active', true)])
@@ -118,15 +118,51 @@ class CartService
         ];
     }
 
-    private function resolveVariant(int $productId, int $sizeId, int $colorId): ProductVariant
+    private function resolveVariant(int $productId, ?int $sizeId, ?int $colorId): ProductVariant
     {
-        $variant = ProductVariant::query()
+        $active = ProductVariant::query()
             ->with(['size:id,name', 'color:id,name'])
             ->where('product_id', $productId)
             ->where('is_active', true)
-            ->where('size_id', $sizeId)
-            ->where('color_id', $colorId)
-            ->first();
+            ->get();
+
+        $requiresSize = $active->contains(fn ($v) => $v->size_id !== null);
+        $requiresColor = $active->contains(fn ($v) => $v->color_id !== null);
+
+        // Simple product (No Size + No Color): resolve automatically.
+        if (! $requiresSize && ! $requiresColor) {
+            $simple = $active->first(fn ($v) => $v->size_id === null && $v->color_id === null);
+            if ($simple) {
+                return $simple;
+            }
+            // Fallback: if there is exactly one active variant, use it.
+            if ($active->count() === 1) {
+                return $active->first();
+            }
+        }
+
+        // Size-only products: resolve (size_id + null color)
+        if ($requiresSize && ! $requiresColor && $sizeId !== null) {
+            $match = $active->first(fn ($v) => (int) $v->size_id === (int) $sizeId && $v->color_id === null);
+            if ($match) {
+                return $match;
+            }
+        }
+
+        // Color-only products: resolve (color_id + null size)
+        if (! $requiresSize && $requiresColor && $colorId !== null) {
+            $match = $active->first(fn ($v) => $v->size_id === null && (int) $v->color_id === (int) $colorId);
+            if ($match) {
+                return $match;
+            }
+        }
+
+        // Default: strict matching by provided size/color (including nulls).
+        $variant = $active
+            ->first(fn ($v) =>
+                ($sizeId === null ? $v->size_id === null : (int) $v->size_id === (int) $sizeId) &&
+                ($colorId === null ? $v->color_id === null : (int) $v->color_id === (int) $colorId)
+            );
 
         if (! $variant) {
             throw ValidationException::withMessages([
@@ -152,8 +188,8 @@ class CartService
         }
     }
 
-    private function lineKey(int $productId, int $sizeId, int $colorId): string
+    private function lineKey(int $productId, ?int $sizeId, ?int $colorId): string
     {
-        return $productId . ':' . $sizeId . ':' . $colorId;
+        return $productId . ':' . ((int) ($sizeId ?? 0)) . ':' . ((int) ($colorId ?? 0));
     }
 }

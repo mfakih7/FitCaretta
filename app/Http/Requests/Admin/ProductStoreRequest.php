@@ -5,6 +5,8 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use App\Models\Catalog\Size;
+use App\Models\Catalog\Color;
 
 class ProductStoreRequest extends FormRequest
 {
@@ -31,14 +33,14 @@ class ProductStoreRequest extends FormRequest
             'is_new_arrival' => ['nullable', 'boolean'],
             'meta_title' => ['nullable', 'string', 'max:180'],
             'meta_description' => ['nullable', 'string', 'max:255'],
-            'main_image' => ['nullable', 'image', 'max:3072'],
+            'main_image' => ['nullable', 'image', 'max:3072', 'dimensions:ratio=4/5,min_width=800,min_height=1000'],
             'gallery_images' => ['nullable', 'array'],
-            'gallery_images.*' => ['image', 'max:3072'],
+            'gallery_images.*' => ['image', 'max:3072', 'dimensions:ratio=4/5,min_width=800,min_height=1000'],
             'gallery_image_colors' => ['nullable', 'array'],
             'gallery_image_colors.*' => ['nullable', 'integer', 'exists:colors,id'],
             'variants' => ['nullable', 'array'],
-            'variants.*.size_id' => ['nullable', 'integer', 'exists:sizes,id'],
-            'variants.*.color_id' => ['nullable', 'integer', 'exists:colors,id'],
+            'variants.*.size_id' => ['nullable'],
+            'variants.*.color_id' => ['nullable'],
             'variants.*.variant_sku' => ['nullable', 'string', 'max:100'],
             'variants.*.price_override' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock_qty' => ['nullable', 'integer', 'min:0'],
@@ -50,6 +52,49 @@ class ProductStoreRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            $variants = collect($this->input('variants', []))->values();
+            $hasIncomplete = false;
+
+            $validSizeIds = Size::query()->pluck('id')->map(fn ($v) => (string) $v)->all();
+            $validColorIds = Color::query()->pluck('id')->map(fn ($v) => (string) $v)->all();
+
+            foreach ($variants as $i => $row) {
+                $sizeId = data_get($row, 'size_id');
+                $colorId = data_get($row, 'color_id');
+                $sku = trim((string) data_get($row, 'variant_sku', ''));
+                $priceOverride = data_get($row, 'price_override');
+                $stockQty = (int) data_get($row, 'stock_qty', 0);
+
+                $touched = filled($sizeId)
+                    || filled($colorId)
+                    || $sku !== ''
+                    || ($priceOverride !== null && $priceOverride !== '')
+                    || $stockQty > 0;
+
+                if (! $touched) {
+                    continue;
+                }
+
+                if (! filled($sizeId)) {
+                    $hasIncomplete = true;
+                    $validator->errors()->add("variants.$i.size_id", 'Size is required for each variant.');
+                } elseif ((string) $sizeId !== '__none__' && ! in_array((string) $sizeId, $validSizeIds, true)) {
+                    $hasIncomplete = true;
+                    $validator->errors()->add("variants.$i.size_id", 'Selected size is invalid.');
+                }
+                if (! filled($colorId)) {
+                    $hasIncomplete = true;
+                    $validator->errors()->add("variants.$i.color_id", 'Color is required for each variant.');
+                } elseif ((string) $colorId !== '__none__' && ! in_array((string) $colorId, $validColorIds, true)) {
+                    $hasIncomplete = true;
+                    $validator->errors()->add("variants.$i.color_id", 'Selected color is invalid.');
+                }
+            }
+
+            if ($hasIncomplete) {
+                $validator->errors()->add('variants', 'Please complete all variant rows before saving the product.');
+            }
+
             $variantColorIds = collect($this->input('variants', []))
                 ->pluck('color_id')
                 ->filter()
@@ -87,5 +132,24 @@ class ProductStoreRequest extends FormRequest
             'is_featured' => $this->boolean('is_featured'),
             'is_new_arrival' => $this->boolean('is_new_arrival'),
         ]);
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $data = parent::validated($key, $default);
+        if (! is_array($data)) {
+            return $data;
+        }
+
+        if (isset($data['variants']) && is_array($data['variants'])) {
+            $data['variants'] = collect($data['variants'])->map(function ($v) {
+                if (! is_array($v)) return $v;
+                if (($v['size_id'] ?? null) === '__none__') $v['size_id'] = null;
+                if (($v['color_id'] ?? null) === '__none__') $v['color_id'] = null;
+                return $v;
+            })->values()->all();
+        }
+
+        return $data;
     }
 }

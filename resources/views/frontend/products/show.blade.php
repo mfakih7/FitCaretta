@@ -226,42 +226,51 @@
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                        <div class="col-12">
-                            <div class="fc-variant-label">Color</div>
-                            <div class="fc-swatch-row" id="color-swatch-row" aria-label="Select color">
-                                @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
-                                    <button
-                                        type="button"
-                                        class="fc-swatch"
-                                        data-color-id="{{ $color->id }}"
-                                        title="{{ $color->name }}"
-                                        aria-label="{{ $color->name }}"
-                                    >
-                                        <span class="fc-swatch-dot" style="background: {{ $color->hex_code ?: '#111' }}"></span>
-                                    </button>
-                                @endforeach
-                            </div>
-                            @error('size_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @php
+                            $hasRealColors = $product->variants->whereNotNull('color_id')->count() > 0;
+                            $hasRealSizes = $product->variants->whereNotNull('size_id')->count() > 0;
+                        @endphp
 
-                        <div class="col-12">
-                            <div class="fc-variant-label">Size</div>
-                            <div class="fc-size-row" id="size-pill-row" aria-label="Select size">
-                                @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
-                                    <button
-                                        type="button"
-                                        class="fc-size-pill"
-                                        data-size-id="{{ $size->id }}"
-                                        aria-label="Size {{ $size->name }}"
-                                    >{{ $size->name }}</button>
-                                @endforeach
+                        @if($hasRealColors)
+                            <div class="col-12">
+                                <div class="fc-variant-label">Color</div>
+                                <div class="fc-swatch-row" id="color-swatch-row" aria-label="Select color">
+                                    @foreach($product->variants->pluck('color')->filter()->unique('id') as $color)
+                                        <button
+                                            type="button"
+                                            class="fc-swatch"
+                                            data-color-id="{{ $color->id }}"
+                                            title="{{ $color->name }}"
+                                            aria-label="{{ $color->name }}"
+                                        >
+                                            <span class="fc-swatch-dot" style="background: {{ $color->hex_code ?: '#111' }}"></span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                                @error('color_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
-                            @error('size_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @endif
+
+                        @if($hasRealSizes)
+                            <div class="col-12">
+                                <div class="fc-variant-label">Size</div>
+                                <div class="fc-size-row" id="size-pill-row" aria-label="Select size">
+                                    @foreach($product->variants->pluck('size')->filter()->unique('id') as $size)
+                                        <button
+                                            type="button"
+                                            class="fc-size-pill"
+                                            data-size-id="{{ $size->id }}"
+                                            aria-label="Size {{ $size->name }}"
+                                        >{{ $size->name }}</button>
+                                    @endforeach
+                                </div>
+                                @error('size_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        @endif
 
                         <div class="col-12 d-flex flex-wrap align-items-end justify-content-between gap-2">
                             <div class="d-flex align-items-end gap-2 flex-wrap">
@@ -426,28 +435,30 @@
             };
 
             const hasVariant = (sizeId, colorId) => {
-                if (!sizeId || !colorId) return false;
-                return variants.some(
-                    (v) => String(v.size_id) === String(sizeId) && String(v.color_id) === String(colorId)
-                );
+                const s = String(sizeId || '');
+                const c = String(colorId || '');
+                const norm = (x) => (x === null || x === undefined) ? '' : String(x);
+                return variants.some((v) => norm(v.size_id) === s && norm(v.color_id) === c);
             };
 
             const pickDefaultVariant = () => {
-                // Prefer a real, valid combination with stock if available.
-                const withBoth = variants.filter((v) => v.size_id && v.color_id);
-                const inStock = withBoth.find((v) => (v.stock_qty ?? 0) > 0);
-                return inStock || withBoth[0] || null;
+                // Prefer in-stock first, otherwise first available.
+                const inStock = variants.find((v) => (v.stock_qty ?? 0) > 0);
+                return inStock || variants[0] || null;
             };
 
             const ensureDefaultsSelected = () => {
                 const currentSize = sizeSelect.value || '';
                 const currentColor = colorSelect.value || '';
-                if (currentSize && currentColor) return;
+                const hasSizes = sizePillRow && sizePillRow.querySelectorAll('[data-size-id]').length > 0;
+                const hasColors = colorSwatchRow && colorSwatchRow.querySelectorAll('[data-color-id]').length > 0;
+
+                if ((hasSizes ? currentSize : true) && (hasColors ? currentColor : true)) return;
 
                 const def = pickDefaultVariant();
                 if (def) {
-                    if (!currentColor && def.color_id) colorSelect.value = String(def.color_id);
-                    if (!currentSize && def.size_id) sizeSelect.value = String(def.size_id);
+                    if (hasColors && !currentColor) colorSelect.value = String(def.color_id ?? '');
+                    if (hasSizes && !currentSize) sizeSelect.value = String(def.size_id ?? '');
                 } else {
                     // Fallback to first available options (still better UX than empty)
                     if (!currentColor) {
@@ -525,24 +536,26 @@
             form.addEventListener('submit', (e) => {
                 const sizeId = sizeSelect.value || '';
                 const colorId = colorSelect.value || '';
+                const hasSizes = sizePillRow && sizePillRow.querySelectorAll('[data-size-id]').length > 0;
+                const hasColors = colorSwatchRow && colorSwatchRow.querySelectorAll('[data-color-id]').length > 0;
 
-                if (!colorId && !sizeId) {
+                if (hasColors && hasSizes && !colorId && !sizeId) {
                     e.preventDefault();
                     showValidation('Please select both size and color.');
                     return;
                 }
-                if (!colorId) {
+                if (hasColors && !colorId) {
                     e.preventDefault();
                     showValidation('Please select a color.');
                     return;
                 }
-                if (!sizeId) {
+                if (hasSizes && !sizeId) {
                     e.preventDefault();
                     showValidation('Please select a size.');
                     return;
                 }
 
-                if (!hasVariant(sizeId, colorId)) {
+                if (hasSizes && hasColors && !hasVariant(sizeId, colorId)) {
                     e.preventDefault();
                     showValidation('This combination is not available.');
                 }

@@ -271,13 +271,18 @@ class ProductController extends Controller
                 continue;
             }
 
+            // Guard against legacy/incomplete rows: do not persist a variant unless both size and color are set.
+            if (! filled($variant['size_id'] ?? null) || ! filled($variant['color_id'] ?? null)) {
+                continue;
+            }
+
             $size = isset($variant['size_id']) && $variant['size_id'] ? Size::find($variant['size_id']) : null;
             $color = isset($variant['color_id']) && $variant['color_id'] ? Color::find($variant['color_id']) : null;
             $generatedVariantSku = $this->buildVariantSku($product->sku, $size?->code ?? $size?->name, $color?->code ?? $color?->name);
 
             $product->variants()->create([
-                'size_id' => $variant['size_id'] ?: null,
-                'color_id' => $variant['color_id'] ?: null,
+                'size_id' => ($variant['size_id'] ?? null) === '__none__' ? null : ($variant['size_id'] ?: null),
+                'color_id' => ($variant['color_id'] ?? null) === '__none__' ? null : ($variant['color_id'] ?: null),
                 'variant_sku' => $variant['variant_sku'] ?: $generatedVariantSku,
                 'price_override' => $variant['price_override'] ?: null,
                 'stock_qty' => $variant['stock_qty'] ?? 0,

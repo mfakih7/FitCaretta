@@ -31,6 +31,17 @@
             --fc-border: #ececec;
             --fc-border-strong: #dedede;
             --fc-ink: #111111;
+            --fc-shadow-xs: 0 1px 2px rgba(17,17,17,.04);
+            --fc-shadow-sm: 0 10px 24px rgba(17,17,17,.07);
+
+            /* Card media sizing + framing (consistency across grids) */
+            /* Heights kept as soft caps; aspect-ratio drives actual sizing */
+            --fc-product-media-max-h: 320px;
+            --fc-category-media-max-h: 520px;
+            --fc-card-media-bg: linear-gradient(180deg, #f7f7f7, #f2f2f2);
+            /* Media padding defaults (keep for future tuning) */
+            --fc-product-media-pad: 12px;
+            --fc-category-media-pad: 0px;
         }
         body {
             font-family: 'Jost', sans-serif;
@@ -575,6 +586,7 @@
             position: relative;
             overflow: hidden;
             background: #f2f2f2;
+            display: block;
         }
         .fc-media img {
             width: 100%;
@@ -582,6 +594,7 @@
             object-fit: cover;
             transform: scale(1);
             transition: transform .35s ease;
+            display: block;
         }
         .fc-hover-zoom:hover .fc-media img { transform: scale(1.045); }
 
@@ -603,20 +616,16 @@
             box-shadow: var(--fc-shadow-sm);
         }
         .fc-category-tile .fc-media {
-            height: 450px;
-            background: linear-gradient(180deg, #f7f7f7, #f2f2f2);
-            width: 100%;
-            overflow: hidden;
+
         }
+
         .fc-category-tile .fc-media img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             object-position: center;
-            padding: 10px;
+            padding: var(--fc-category-media-pad);
             display: block;
-            transform: scale(1);
-            transition: transform .32s ease;
         }
         .fc-category-tile:hover .fc-media img{ transform: scale(1.02); }
         .fc-category-tile .fc-media::after{
@@ -680,24 +689,12 @@
             box-shadow: var(--fc-shadow-sm);
         }
         .fc-product-card .fc-media {
-            height: 280px;
-            background: linear-gradient(180deg, #f7f7f7, #f2f2f2);
-            border-radius: 16px 16px 0 0;
-            width: 100%;
-            overflow: hidden;
         }
-        /* Product images: show full product (reduce cropping) */
+
         .fc-product-card .fc-media img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            object-position: center;
-            padding: 12px;
-            display: block;
-            transform: scale(1);
-            transition: transform .28s ease, opacity .18s ease;
+    
         }
-        .fc-product-card:hover .fc-media img{ transform: scale(1.02); }
+        .fc-product-card:hover .fc-media img{ transform: scale(1.01); }
         .fc-product-title {
             font-size: .95rem;
             font-weight: 500;
@@ -1083,8 +1080,12 @@
             main.fc-main{ padding-top: 1rem !important; padding-bottom: 1.25rem !important; }
 
             /* Cards: slightly smaller media heights on phones */
-            .fc-category-tile .fc-media{ height: 280px; }
-            .fc-product-card .fc-media{ height: 240px; }
+            :root{
+                --fc-category-media-max-h: 320px;
+                --fc-product-media-max-h: 260px;
+                --fc-category-media-pad: 0px;
+                --fc-product-media-pad: 10px;
+            }
         }
 
         @media (max-width: 575.98px){
@@ -1400,18 +1401,20 @@
             if (!p) return;
             const colorId = els.colorId.value || '';
             const sizeId = els.sizeId.value || '';
+            const hasColors = (p.colors || []).length > 0;
+            const hasSizes = (p.sizes || []).length > 0;
 
-            if (!colorId) {
+            if (hasColors && !colorId) {
                 e.preventDefault();
                 showErr(els.colorErr, 'Please select a color.');
                 return;
             }
-            if (!sizeId) {
+            if (hasSizes && !sizeId) {
                 e.preventDefault();
                 showErr(els.sizeErr, 'Please select a size.');
                 return;
             }
-            if (!hasVariant(sizeId, colorId)) {
+            if (hasColors && hasSizes && !hasVariant(sizeId, colorId)) {
                 e.preventDefault();
                 showErr(els.sizeErr, 'This combination is not available.');
             }

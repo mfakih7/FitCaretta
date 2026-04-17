@@ -97,24 +97,35 @@
 <hr class="my-4">
 <h2 class="h5">Product Variants & Stock</h2>
 <p class="text-muted small mb-3">Use rows for size/color combinations and stock quantities.</p>
+@error('variants')
+    <div class="alert alert-danger py-2 mb-3">{{ $message }}</div>
+@enderror
 <div id="variants-container">
     @for($i = 0; $i < $variantRows; $i++)
         <div class="row g-2 border rounded p-2 mb-2 variant-row" data-index="{{ $i }}">
             <div class="col-md-2">
                 <select name="variants[{{ $i }}][size_id]" class="form-select">
                     <option value="">Size</option>
+                    <option value="__none__" @selected((string) data_get($existingVariants, "$i.size_id") === '__none__' || data_get($existingVariants, "$i.size_id") === null)>No Size</option>
                     @foreach($sizes as $size)
                         <option value="{{ $size->id }}" @selected((string) data_get($existingVariants, "$i.size_id") === (string) $size->id)>{{ $size->name }}</option>
                     @endforeach
                 </select>
+                @error("variants.$i.size_id")
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-2">
                 <select name="variants[{{ $i }}][color_id]" class="form-select">
                     <option value="">Color</option>
+                    <option value="__none__" @selected((string) data_get($existingVariants, "$i.color_id") === '__none__' || data_get($existingVariants, "$i.color_id") === null)>No Color</option>
                     @foreach($colors as $color)
                         <option value="{{ $color->id }}" @selected((string) data_get($existingVariants, "$i.color_id") === (string) $color->id)>{{ $color->name }}</option>
                     @endforeach
                 </select>
+                @error("variants.$i.color_id")
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-2">
                 <input type="text" name="variants[{{ $i }}][variant_sku]" class="form-control" placeholder="Variant SKU" value="{{ data_get($existingVariants, "$i.variant_sku") }}">
@@ -169,6 +180,7 @@
         <div class="col-md-2">
             <select name="variants[__INDEX__][size_id]" class="form-select">
                 <option value="">Size</option>
+                <option value="__none__">No Size</option>
                 @foreach($sizes as $size)
                     <option value="{{ $size->id }}">{{ $size->name }}</option>
                 @endforeach
@@ -177,6 +189,7 @@
         <div class="col-md-2">
             <select name="variants[__INDEX__][color_id]" class="form-select">
                 <option value="">Color</option>
+                <option value="__none__">No Color</option>
                 @foreach($colors as $color)
                     <option value="{{ $color->id }}">{{ $color->name }}</option>
                 @endforeach
@@ -238,6 +251,57 @@
             if (e.target.classList.contains('remove-variant')) {
                 e.target.closest('.variant-row')?.remove();
                 reindexRows();
+            }
+        });
+
+        // Client-side integrity: block saving if a "touched" row is missing size/color.
+        const form = container?.closest('form');
+        const isFilled = (v) => {
+            const s = String(v ?? '').trim();
+            return s !== '';
+        };
+        const getVal = (row, selector) => row.querySelector(selector)?.value ?? '';
+        const getNum = (row, selector) => parseInt(row.querySelector(selector)?.value ?? '0', 10) || 0;
+
+        const clearRowErrors = (row) => {
+            row.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        };
+
+        const validateVariants = () => {
+            const rows = Array.from(container?.querySelectorAll('.variant-row') ?? []);
+            let hasError = false;
+
+            rows.forEach((row) => {
+                clearRowErrors(row);
+
+                const size = getVal(row, 'select[name*="[size_id]"]');
+                const color = getVal(row, 'select[name*="[color_id]"]');
+                const sku = (row.querySelector('input[name*="[variant_sku]"]')?.value ?? '').trim();
+                const priceOverride = (row.querySelector('input[name*="[price_override]"]')?.value ?? '').trim();
+                const stock = getNum(row, 'input[name*="[stock_qty]"]');
+
+                const touched = isFilled(size) || isFilled(color) || sku !== '' || priceOverride !== '' || stock > 0;
+                if (!touched) return;
+
+                if (!isFilled(size)) {
+                    hasError = true;
+                    row.querySelector('select[name*="[size_id]"]')?.classList.add('is-invalid');
+                }
+                if (!isFilled(color)) {
+                    hasError = true;
+                    row.querySelector('select[name*="[color_id]"]')?.classList.add('is-invalid');
+                }
+            });
+
+            return !hasError;
+        };
+
+        form?.addEventListener('submit', (e) => {
+            if (!validateVariants()) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert('Please complete all variant rows before saving the product.');
             }
         });
     })();
