@@ -318,7 +318,7 @@
         <h2 class="h5 mb-3">Related Products</h2>
         <div class="row g-3">
             @forelse($relatedProducts as $related)
-                <div class="col-12 col-md-6 col-lg-3">
+                <div class="col-6 col-md-4 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $related])
                 </div>
             @empty

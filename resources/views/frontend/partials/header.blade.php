@@ -10,11 +10,11 @@
     <div class="container">
         <div class="fc-header-grid">
             <div class="fc-header-left">
-                <button class="navbar-toggler fc-header-burger" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler fc-header-burger d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#fcMobileNav" aria-controls="fcMobileNav" aria-label="Open menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse fc-header-collapse" id="mainNav">
+                <div class="collapse navbar-collapse fc-header-collapse d-none d-lg-flex" id="mainNav">
                     <ul class="navbar-nav fc-header-menu">
                         <li class="nav-item">
                             <a class="nav-link @if(request()->routeIs('shop')) active @endif" href="{{ route('shop') }}" @if(request()->routeIs('shop')) aria-current="page" @endif>Shop</a>
@@ -79,6 +79,33 @@
         </div>
     </div>
 </nav>
+
+<!-- Mobile/Tablet menu (offcanvas) -->
+<div class="offcanvas offcanvas-start fc-mobile-nav d-lg-none" tabindex="-1" id="fcMobileNav" aria-labelledby="fcMobileNavLabel">
+    <div class="offcanvas-header">
+        <a class="navbar-brand fc-header-logo" href="{{ route('home') }}" aria-label="{{ config('store.name') }}">
+            <img src="{{ asset(config('store.logo_primary_path')) }}" alt="{{ config('store.logo_alt') }}" class="fc-brand-logo">
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <nav aria-label="Mobile navigation">
+            <ul class="nav flex-column fc-mobile-nav-list">
+                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop')) active @endif" href="{{ route('shop') }}">Shop</a></li>
+                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.men')) active @endif" href="{{ route('shop.men') }}">Men</a></li>
+                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.women')) active @endif" href="{{ route('shop.women') }}">Women</a></li>
+                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.new')) active @endif" href="{{ route('shop.new') }}">New Arrivals</a></li>
+                <li class="nav-item"><a class="nav-link @if(request()->routeIs('offers')) active @endif" href="{{ route('offers') }}">Offers</a></li>
+                @if(!empty($showAboutNav))
+                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('about.show')) active @endif" href="{{ route('about.show') }}">About</a></li>
+                @endif
+                @if(!empty($showFeedbackNav))
+                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('feedback.*')) active @endif" href="{{ route('feedback.create') }}">Feedback</a></li>
+                @endif
+            </ul>
+        </nav>
+    </div>
+</div>
 
 <script>
     (() => {

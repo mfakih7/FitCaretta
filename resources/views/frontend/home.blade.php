@@ -87,7 +87,7 @@
         </div>
         <div class="row g-3">
             @forelse($featuredCategories as $category)
-                <div class="col-12 col-md-6 col-lg-4">
+                <div class="col-6 col-md-4 col-lg-4">
                     <a href="{{ route('shop.category', $category->slug) }}" class="fc-category-tile fc-hover-zoom h-100">
                         <div class="fc-media">
                             <img src="{{ $category->image_url }}" alt="{{ $category->name }}">
@@ -115,7 +115,7 @@
         </div>
         <div class="row g-3">
             @forelse($featuredProducts as $product)
-                <div class="col-12 col-md-6 col-lg-3">
+                <div class="col-6 col-md-4 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $product])
                 </div>
             @empty
@@ -131,7 +131,7 @@
         </div>
         <div class="row g-3">
             @forelse($newArrivals as $product)
-                <div class="col-12 col-md-6 col-lg-3">
+                <div class="col-6 col-md-4 col-lg-3">
                     @include('frontend.partials.product-card', ['product' => $product])
                 </div>
             @empty
