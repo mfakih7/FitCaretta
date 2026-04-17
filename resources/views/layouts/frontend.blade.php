@@ -616,7 +616,11 @@
             box-shadow: var(--fc-shadow-sm);
         }
         .fc-category-tile .fc-media {
-
+            aspect-ratio: 3 / 4;
+            height: auto;
+       
+            background: #f4f4f4;
+            overflow: hidden;
         }
 
         .fc-category-tile .fc-media img {
@@ -689,10 +693,22 @@
             box-shadow: var(--fc-shadow-sm);
         }
         .fc-product-card .fc-media {
+            aspect-ratio: 4 / 5;
+            height: auto;
+           
+            background: var(--fc-card-media-bg);
+            overflow: hidden;
+            display: grid;
+            place-items: center;
         }
 
         .fc-product-card .fc-media img {
-    
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            padding: var(--fc-product-media-pad);
+            display: block;
         }
         .fc-product-card:hover .fc-media img{ transform: scale(1.01); }
         .fc-product-title {
