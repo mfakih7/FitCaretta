@@ -1183,15 +1183,19 @@
             <input type="hidden" name="size_id" id="fcQuickAddSizeId">
 
             <div class="mt-3">
-                <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Color</div>
-                <div class="d-flex flex-wrap gap-2" id="fcQuickAddColors"></div>
-                <div class="text-danger small mt-2 d-none" id="fcQuickAddColorError"></div>
+                <div id="fcQuickAddColorBlock">
+                    <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Color</div>
+                    <div class="d-flex flex-wrap gap-2" id="fcQuickAddColors"></div>
+                    <div class="text-danger small mt-2 d-none" id="fcQuickAddColorError"></div>
+                </div>
             </div>
 
             <div class="mt-3">
-                <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Size</div>
-                <div class="d-flex flex-wrap gap-2" id="fcQuickAddSizes"></div>
-                <div class="text-danger small mt-2 d-none" id="fcQuickAddSizeError"></div>
+                <div id="fcQuickAddSizeBlock">
+                    <div class="small text-muted mb-1" style="letter-spacing:.08em;text-transform:uppercase;">Size</div>
+                    <div class="d-flex flex-wrap gap-2" id="fcQuickAddSizes"></div>
+                    <div class="text-danger small mt-2 d-none" id="fcQuickAddSizeError"></div>
+                </div>
             </div>
 
             <div class="mt-3 d-flex align-items-end justify-content-between gap-2">
@@ -1312,6 +1316,8 @@
             sizeId: document.getElementById('fcQuickAddSizeId'),
             colors: document.getElementById('fcQuickAddColors'),
             sizes: document.getElementById('fcQuickAddSizes'),
+            colorsBlock: document.getElementById('fcQuickAddColorBlock'),
+            sizesBlock: document.getElementById('fcQuickAddSizeBlock'),
             colorErr: document.getElementById('fcQuickAddColorError'),
             sizeErr: document.getElementById('fcQuickAddSizeError'),
             qty: document.getElementById('fcQuickAddQty'),
@@ -1360,6 +1366,12 @@
 
             // colors
             els.colors.innerHTML = '';
+            const hasColors = (p.colors || []).length > 0;
+            els.colorsBlock?.classList.toggle('d-none', !hasColors);
+            if (!hasColors) {
+                els.colorId.value = '';
+                showErr(els.colorErr, '');
+            }
             (p.colors || []).forEach(c => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -1379,6 +1391,12 @@
 
             // sizes
             els.sizes.innerHTML = '';
+            const hasSizes = (p.sizes || []).length > 0;
+            els.sizesBlock?.classList.toggle('d-none', !hasSizes);
+            if (!hasSizes) {
+                els.sizeId.value = '';
+                showErr(els.sizeErr, '');
+            }
             (p.sizes || []).forEach(s => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -1397,10 +1415,19 @@
             // defaults
             state.selectedColorId = String(p.defaultColorId || '');
             state.selectedSizeId = '';
-            els.colorId.value = state.selectedColorId;
-            els.sizeId.value = '';
-            setActiveBtn(els.colors, 'data-color-id', state.selectedColorId);
-            setMainImageForColor(state.selectedColorId);
+            if (hasColors) {
+                els.colorId.value = state.selectedColorId;
+                setActiveBtn(els.colors, 'data-color-id', state.selectedColorId);
+                setMainImageForColor(state.selectedColorId);
+            } else {
+                els.colorId.value = '';
+                setMainImageForColor('');
+            }
+            if (hasSizes) {
+                els.sizeId.value = '';
+            } else {
+                els.sizeId.value = '';
+            }
         };
 
         els.qtyMinus?.addEventListener('click', () => {

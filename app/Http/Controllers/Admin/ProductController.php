@@ -271,18 +271,21 @@ class ProductController extends Controller
                 continue;
             }
 
-            // Guard against legacy/incomplete rows: do not persist a variant unless both size and color are set.
-            if (! filled($variant['size_id'] ?? null) || ! filled($variant['color_id'] ?? null)) {
+            // Guard against incomplete rows: placeholders submit empty strings.
+            // Null is a valid, intentional value representing "No Size"/"No Color" for simple products.
+            $sizeId = $variant['size_id'] ?? null;
+            $colorId = $variant['color_id'] ?? null;
+            if ($sizeId === '' || $colorId === '') {
                 continue;
             }
 
-            $size = isset($variant['size_id']) && $variant['size_id'] ? Size::find($variant['size_id']) : null;
-            $color = isset($variant['color_id']) && $variant['color_id'] ? Color::find($variant['color_id']) : null;
+            $size = (is_numeric($sizeId) && (int) $sizeId > 0) ? Size::find((int) $sizeId) : null;
+            $color = (is_numeric($colorId) && (int) $colorId > 0) ? Color::find((int) $colorId) : null;
             $generatedVariantSku = $this->buildVariantSku($product->sku, $size?->code ?? $size?->name, $color?->code ?? $color?->name);
 
             $product->variants()->create([
-                'size_id' => ($variant['size_id'] ?? null) === '__none__' ? null : ($variant['size_id'] ?: null),
-                'color_id' => ($variant['color_id'] ?? null) === '__none__' ? null : ($variant['color_id'] ?: null),
+                'size_id' => (is_numeric($sizeId) && (int) $sizeId > 0) ? (int) $sizeId : null,
+                'color_id' => (is_numeric($colorId) && (int) $colorId > 0) ? (int) $colorId : null,
                 'variant_sku' => $variant['variant_sku'] ?: $generatedVariantSku,
                 'price_override' => $variant['price_override'] ?: null,
                 'stock_qty' => $variant['stock_qty'] ?? 0,
@@ -294,8 +297,14 @@ class ProductController extends Controller
 
     private function variantHasContent(array $variant): bool
     {
-        return filled($variant['size_id'] ?? null)
-            || filled($variant['color_id'] ?? null)
+        $sizeId = (string) ($variant['size_id'] ?? '');
+        $colorId = (string) ($variant['color_id'] ?? '');
+        $isDefaultNone = ($sizeId === '__none__') && ($colorId === '__none__');
+
+        // A row with both defaults (No Size + No Color) is only considered "content" if the admin
+        // actually set meaningful fields (e.g. stock/SKU/price). This avoids auto-creating duplicates
+        // from initial empty rows while still supporting simple products intentionally.
+        return (! $isDefaultNone && (filled($variant['size_id'] ?? null) || filled($variant['color_id'] ?? null)))
             || filled($variant['variant_sku'] ?? null)
             || filled($variant['price_override'] ?? null)
             || (int) ($variant['stock_qty'] ?? 0) > 0;

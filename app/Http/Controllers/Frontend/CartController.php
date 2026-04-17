@@ -44,11 +44,13 @@ class CartController extends Controller
                 ->where('is_active', true)
                 ->findOrFail((int) $validated['product_id']);
 
-            $requiresSize = $product->variants->contains(fn ($v) => $v->size_id !== null);
-            $requiresColor = $product->variants->contains(fn ($v) => $v->color_id !== null);
+            // Defensive normalization: treat 0 / non-positive IDs as "none" (legacy/bad data safe).
+            $norm = static fn ($id) => (is_numeric($id) && (int) $id > 0) ? (int) $id : null;
+            $requiresSize = $product->variants->contains(fn ($v) => $norm($v->size_id) !== null);
+            $requiresColor = $product->variants->contains(fn ($v) => $norm($v->color_id) !== null);
 
-            $sizeId = $validated['size_id'] ?? null;
-            $colorId = $validated['color_id'] ?? null;
+            $sizeId = $norm($validated['size_id'] ?? null);
+            $colorId = $norm($validated['color_id'] ?? null);
 
             if ($requiresSize && ! $sizeId) {
                 throw ValidationException::withMessages(['size_id' => 'Please select a size.']);

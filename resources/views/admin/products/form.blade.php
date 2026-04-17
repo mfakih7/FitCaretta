@@ -8,7 +8,8 @@
         'low_stock_threshold' => $v->low_stock_threshold,
         'is_active' => $v->is_active,
     ])->toArray() ?? []);
-    $variantRows = max(count($existingVariants), 3);
+    // Keep the form frictionless for simple products without creating multiple accidental "No Size/No Color" variants.
+    $variantRows = max(count($existingVariants), 1);
 @endphp
 
 <div class="row g-3">
@@ -105,8 +106,12 @@
         <div class="row g-2 border rounded p-2 mb-2 variant-row" data-index="{{ $i }}">
             <div class="col-md-2">
                 <select name="variants[{{ $i }}][size_id]" class="form-select">
-                    <option value="">Size</option>
-                    <option value="__none__" @selected((string) data_get($existingVariants, "$i.size_id") === '__none__' || data_get($existingVariants, "$i.size_id") === null)>No Size</option>
+                    <option value="" disabled>Size</option>
+                    <option value="__none__" @selected(
+                        (string) data_get($existingVariants, "$i.size_id") === '__none__'
+                        || data_get($existingVariants, "$i.size_id") === null
+                        || data_get($existingVariants, "$i.size_id") === ''
+                    )>No Size</option>
                     @foreach($sizes as $size)
                         <option value="{{ $size->id }}" @selected((string) data_get($existingVariants, "$i.size_id") === (string) $size->id)>{{ $size->name }}</option>
                     @endforeach
@@ -117,8 +122,12 @@
             </div>
             <div class="col-md-2">
                 <select name="variants[{{ $i }}][color_id]" class="form-select">
-                    <option value="">Color</option>
-                    <option value="__none__" @selected((string) data_get($existingVariants, "$i.color_id") === '__none__' || data_get($existingVariants, "$i.color_id") === null)>No Color</option>
+                    <option value="" disabled>Color</option>
+                    <option value="__none__" @selected(
+                        (string) data_get($existingVariants, "$i.color_id") === '__none__'
+                        || data_get($existingVariants, "$i.color_id") === null
+                        || data_get($existingVariants, "$i.color_id") === ''
+                    )>No Color</option>
                     @foreach($colors as $color)
                         <option value="{{ $color->id }}" @selected((string) data_get($existingVariants, "$i.color_id") === (string) $color->id)>{{ $color->name }}</option>
                     @endforeach
@@ -179,8 +188,8 @@
     <div class="row g-2 border rounded p-2 mb-2 variant-row" data-index="__INDEX__">
         <div class="col-md-2">
             <select name="variants[__INDEX__][size_id]" class="form-select">
-                <option value="">Size</option>
-                <option value="__none__">No Size</option>
+                <option value="" disabled>Size</option>
+                <option value="__none__" selected>No Size</option>
                 @foreach($sizes as $size)
                     <option value="{{ $size->id }}">{{ $size->name }}</option>
                 @endforeach
@@ -188,8 +197,8 @@
         </div>
         <div class="col-md-2">
             <select name="variants[__INDEX__][color_id]" class="form-select">
-                <option value="">Color</option>
-                <option value="__none__">No Color</option>
+                <option value="" disabled>Color</option>
+                <option value="__none__" selected>No Color</option>
                 @foreach($colors as $color)
                     <option value="{{ $color->id }}">{{ $color->name }}</option>
                 @endforeach
@@ -254,7 +263,7 @@
             }
         });
 
-        // Client-side integrity: block saving if a "touched" row is missing size/color.
+        // Client-side integrity: block saving if an "intentional" row is incomplete.
         const form = container?.closest('form');
         const isFilled = (v) => {
             const s = String(v ?? '').trim();
@@ -280,8 +289,12 @@
                 const priceOverride = (row.querySelector('input[name*="[price_override]"]')?.value ?? '').trim();
                 const stock = getNum(row, 'input[name*="[stock_qty]"]');
 
-                const touched = isFilled(size) || isFilled(color) || sku !== '' || priceOverride !== '' || stock > 0;
-                if (!touched) return;
+                const isDefaultNone = (String(size) === '__none__') && (String(color) === '__none__');
+                const intentional = (!isDefaultNone && (isFilled(size) || isFilled(color)))
+                    || sku !== ''
+                    || priceOverride !== ''
+                    || stock > 0;
+                if (!intentional) return;
 
                 if (!isFilled(size)) {
                     hasError = true;

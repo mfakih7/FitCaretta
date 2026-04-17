@@ -129,10 +129,18 @@
                                                 {{ $item['name'] }}
                                             </a>
                                             <div class="fc-cart-meta mt-1">
-                                                <span>{{ $item['size_name'] ?? '-' }}</span>
-                                                <span class="mx-1">·</span>
-                                                <span>{{ $item['color_name'] ?? '-' }}</span>
-                                                <span class="mx-1">·</span>
+                                                @if(!empty($item['size_name']))
+                                                    <span>{{ $item['size_name'] }}</span>
+                                                @endif
+                                                @if(!empty($item['size_name']) && !empty($item['color_name']))
+                                                    <span class="mx-1">·</span>
+                                                @endif
+                                                @if(!empty($item['color_name']))
+                                                    <span>{{ $item['color_name'] }}</span>
+                                                @endif
+                                                @if(!empty($item['size_name']) || !empty($item['color_name']))
+                                                    <span class="mx-1">·</span>
+                                                @endif
                                                 <span>Stock: {{ $item['stock_qty'] }}</span>
                                             </div>
                                         </div>

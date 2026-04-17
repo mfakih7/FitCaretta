@@ -67,8 +67,8 @@ class ProductUpdateRequest extends FormRequest
                 $priceOverride = data_get($row, 'price_override');
                 $stockQty = (int) data_get($row, 'stock_qty', 0);
 
-                $touched = filled($sizeId)
-                    || filled($colorId)
+                $isDefaultNone = ((string) $sizeId === '__none__') && ((string) $colorId === '__none__');
+                $touched = (! $isDefaultNone && (filled($sizeId) || filled($colorId)))
                     || $sku !== ''
                     || ($priceOverride !== null && $priceOverride !== '')
                     || $stockQty > 0;
