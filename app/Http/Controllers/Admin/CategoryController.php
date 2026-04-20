@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryStoreRequest;
 use App\Http\Requests\Admin\CategoryUpdateRequest;
 use App\Models\Catalog\Category;
+use App\Services\Images\ImageVariantsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
+    public function __construct(private readonly ImageVariantsService $imageVariants)
+    {
+    }
+
     public function index(): View
     {
         $categories = Category::query()
@@ -36,7 +41,17 @@ class CategoryController extends Controller
         $payload = $request->validated();
 
         if ($request->hasFile('image')) {
-            $payload['image_path'] = $request->file('image')->store('categories', 'public');
+            $variants = $this->imageVariants->storeProductImageVariants(
+                $request->file('image'),
+                'categories/original',
+                'categories/thumb',
+                'categories/medium'
+            );
+            // keep legacy image_path populated (medium) for backwards compatibility
+            $payload['image_path'] = $variants['medium_path'];
+            $payload['image_thumb_path'] = $variants['thumb_path'];
+            $payload['image_medium_path'] = $variants['medium_path'];
+            $payload['image_original_path'] = $variants['original_path'];
         }
 
         Category::create($payload);
@@ -61,11 +76,23 @@ class CategoryController extends Controller
         $payload = $request->validated();
 
         if ($request->hasFile('image')) {
-            if ($category->image_path && Storage::disk('public')->exists($category->image_path)) {
-                Storage::disk('public')->delete($category->image_path);
-            }
+            Storage::disk('public')->delete(array_filter([
+                $category->image_path,
+                $category->image_thumb_path,
+                $category->image_medium_path,
+                $category->image_original_path,
+            ]));
 
-            $payload['image_path'] = $request->file('image')->store('categories', 'public');
+            $variants = $this->imageVariants->storeProductImageVariants(
+                $request->file('image'),
+                'categories/original',
+                'categories/thumb',
+                'categories/medium'
+            );
+            $payload['image_path'] = $variants['medium_path'];
+            $payload['image_thumb_path'] = $variants['thumb_path'];
+            $payload['image_medium_path'] = $variants['medium_path'];
+            $payload['image_original_path'] = $variants['original_path'];
         } else {
             if (! array_key_exists('image_path', $payload) || (string) $payload['image_path'] === '') {
                 unset($payload['image_path']);
@@ -92,6 +119,14 @@ class CategoryController extends Controller
                 ->route('admin.categories.index')
                 ->with('error', 'Cannot delete this category because it has subcategories.');
         }
+
+        // Keep media cleanup consistent with products
+        Storage::disk('public')->delete(array_filter([
+            $category->image_path,
+            $category->image_thumb_path,
+            $category->image_medium_path,
+            $category->image_original_path,
+        ]));
 
         $category->delete();
 

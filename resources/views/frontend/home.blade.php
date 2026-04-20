@@ -90,7 +90,7 @@
                 <div class="col-6 col-md-4 col-lg-4">
                     <a href="{{ route('shop.category', $category->slug) }}" class="fc-category-tile fc-hover-zoom h-100">
                         <div class="fc-media">
-                            <img src="{{ $category->image_url }}" alt="{{ $category->name }}">
+                            <img src="{{ $category->image_thumb_url }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
                             <div class="fc-category-tile-label">Category</div>
                         </div>
                         <div class="fc-category-tile-body">

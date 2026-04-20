@@ -22,6 +22,9 @@ class Category extends Model
         'slug',
         'description',
         'image_path',
+        'image_thumb_path',
+        'image_medium_path',
+        'image_original_path',
         'is_active',
         'sort_order',
     ];
@@ -32,7 +35,8 @@ class Category extends Model
 
     public function getImageUrlAttribute(): string
     {
-        $path = (string) ($this->image_path ?? '');
+        // Prefer optimized medium variant when available.
+        $path = (string) ($this->image_medium_path ?: $this->image_path ?: '');
 
         if ($path === '') {
             return asset(self::DEFAULT_PLACEHOLDER);
@@ -52,6 +56,49 @@ class Category extends Model
 
         if (Storage::disk('public')->exists($path)) {
             // Use URL generator to respect subfolder installs (e.g. /FitCaretta/public).
+            return asset('storage/' . ltrim($path, '/'));
+        }
+
+        return asset(self::DEFAULT_PLACEHOLDER);
+    }
+
+    public function getImageThumbUrlAttribute(): string
+    {
+        $path = (string) ($this->image_thumb_path ?: $this->image_medium_path ?: $this->image_path ?: '');
+        return $this->resolveCategoryImageUrl($path);
+    }
+
+    public function getImageMediumUrlAttribute(): string
+    {
+        $path = (string) ($this->image_medium_path ?: $this->image_path ?: '');
+        return $this->resolveCategoryImageUrl($path);
+    }
+
+    public function getImageOriginalUrlAttribute(): string
+    {
+        $path = (string) ($this->image_original_path ?: $this->image_path ?: '');
+        return $this->resolveCategoryImageUrl($path);
+    }
+
+    private function resolveCategoryImageUrl(string $path): string
+    {
+        if ($path === '') {
+            return asset(self::DEFAULT_PLACEHOLDER);
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://', 'data:', '/'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        if (Str::startsWith($path, 'images/')) {
+            return asset($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
             return asset('storage/' . ltrim($path, '/'));
         }
 
