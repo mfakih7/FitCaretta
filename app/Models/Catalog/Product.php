@@ -34,6 +34,9 @@ class Product extends Model
         'is_featured',
         'is_new_arrival',
         'main_image_path',
+        'main_image_thumb_path',
+        'main_image_medium_path',
+        'main_image_original_path',
         'meta_title',
         'meta_description',
     ];

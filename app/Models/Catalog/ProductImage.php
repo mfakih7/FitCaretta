@@ -17,6 +17,9 @@ class ProductImage extends Model
         'product_id',
         'color_id',
         'image_path',
+        'image_thumb_path',
+        'image_medium_path',
+        'image_original_path',
         'alt_text',
         'sort_order',
     ];

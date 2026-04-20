@@ -61,10 +61,11 @@
     </div>
     <div class="col-md-3">
         <label class="form-label">Main Image</label>
-        <input type="file" name="main_image" class="form-control" accept="image/*">
+        <input type="file" id="fcMainImageInput" name="main_image" class="form-control" accept="image/*">
         <img
-            src="{{ ($product?->main_image_url ?? asset(\App\Models\Catalog\Product::DEFAULT_PLACEHOLDER)) . ($product?->updated_at ? ('?v=' . $product->updated_at->timestamp) : '') }}"
+            src="{{ ($product?->image_thumb_url ?? $product?->main_image_url ?? asset(\App\Models\Catalog\Product::DEFAULT_PLACEHOLDER)) . ($product?->updated_at ? ('?v=' . $product->updated_at->timestamp) : '') }}"
             alt="Main image"
+            id="fcMainImagePreview"
             class="img-thumbnail mt-2"
             style="max-height: 120px;"
         >
@@ -354,6 +355,25 @@
                 `;
                 rows.appendChild(item);
             });
+        });
+    })();
+</script>
+
+<script>
+    (() => {
+        const input = document.getElementById('fcMainImageInput');
+        const preview = document.getElementById('fcMainImagePreview');
+        if (!input || !preview) return;
+
+        let lastObjectUrl = null;
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            if (!String(file.type || '').startsWith('image/')) return;
+
+            if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+            lastObjectUrl = URL.createObjectURL(file);
+            preview.src = lastObjectUrl;
         });
     })();
 </script>
