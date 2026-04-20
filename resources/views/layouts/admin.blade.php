@@ -106,6 +106,34 @@
         .fc-admin-content .badge {
             font-weight: 500;
         }
+
+        /* Responsive admin layout */
+        html, body {
+            overflow-x: hidden;
+        }
+        .fc-admin-content {
+            min-width: 0;
+        }
+        .fc-admin-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .fc-admin-mobile-toggle {
+            border: 1px solid rgba(255, 255, 255, .28);
+        }
+        .fc-admin-mobile-toggle:focus {
+            box-shadow: 0 0 0 .2rem rgba(255, 255, 255, .18);
+        }
+        /* Make common admin page title bars wrap on small screens */
+        @media (max-width: 575.98px) {
+            .fc-admin-content > .d-flex.justify-content-between.align-items-center.mb-3 {
+                flex-wrap: wrap;
+                gap: .5rem;
+            }
+            .fc-admin-content > .d-flex.justify-content-between.align-items-center.mb-3 > * {
+                max-width: 100%;
+            }
+        }
         /* Branded loader (admin) */
         .fc-loader{
             position: fixed;
@@ -229,6 +257,16 @@
         <a class="navbar-brand fc-admin-brand" href="{{ route('admin.dashboard') }}">
             <img src="{{ asset(config('store.brand.logo_mark_path')) }}" alt="{{ config('store.brand.logo_alt') }}" class="fc-admin-brand-logo">
         </a>
+
+        <button class="btn btn-outline-light btn-sm d-lg-none fc-admin-mobile-toggle"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#fcAdminSidebar"
+                aria-controls="fcAdminSidebar"
+                aria-label="Open menu">
+            <span class="me-1">Menu</span>
+            <span class="navbar-toggler-icon" style="width: 1.05em; height: 1.05em;"></span>
+        </button>
         
         <form method="POST" action="{{ route('admin.logout') }}" class="ms-auto">
             @csrf
@@ -239,68 +277,33 @@
 
 <div class="container-fluid fc-admin-layout">
     <div class="row">
-        <aside class="col-lg-2 fc-admin-sidebar min-vh-100 p-3">
-            <div class="list-group list-group-flush sidebar-menu">
-                <div class="sidebar-section-label">Catalog</div>
-                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                    <i data-lucide="shopping-bag"></i><span>Products</span>
-                </a>
-                <a href="{{ route('admin.categories.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                    <i data-lucide="layers"></i><span>Categories</span>
-                </a>
-                <a href="{{ route('admin.product-types.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.product-types.*') ? 'active' : '' }}">
-                    <i data-lucide="box"></i><span>Product Types</span>
-                </a>
-                <a href="{{ route('admin.sizes.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.sizes.*') ? 'active' : '' }}">
-                    <i data-lucide="ruler"></i><span>Sizes</span>
-                </a>
-                <a href="{{ route('admin.colors.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.colors.*') ? 'active' : '' }}">
-                    <i data-lucide="palette"></i><span>Colors</span>
-                </a>
-
-                <div class="sidebar-section-label">Sales</div>
-                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                    <i data-lucide="receipt"></i><span>Orders</span>
-                </a>
-                <a href="{{ route('admin.discounts.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
-                    <i data-lucide="percent"></i><span>Discounts</span>
-                </a>
-                <a href="{{ route('admin.coupons.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
-                    <i data-lucide="ticket"></i><span>Coupons</span>
-                </a>
-
-                <div class="sidebar-section-label">Customers</div>
-                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-                    <i data-lucide="users"></i><span>Customers</span>
-                </a>
-
-                <div class="sidebar-section-label">Analytics</div>
-                <a href="{{ route('admin.homepage-slides.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.homepage-slides.*') ? 'active' : '' }}">
-                    <i data-lucide="sliders-horizontal"></i><span>Homepage Slides</span>
-                </a>
-                <a href="{{ route('admin.reports.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-                    <i data-lucide="bar-chart-3"></i><span>Reports</span>
-                </a>
-
-                <div class="sidebar-section-label">System</div>
-                <a href="{{ route('admin.about.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.about.*') ? 'active' : '' }}">
-                    <i data-lucide="info"></i><span>About</span>
-                </a>
-                <a href="{{ route('admin.feedback.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">
-                    <i data-lucide="message-square"></i><span>Feedback</span>
-                </a>
-                <a href="{{ route('admin.settings.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                    <i data-lucide="settings"></i><span>Settings</span>
-                </a>
-                <a href="{{ route('admin.profile.edit') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
-                    <i data-lucide="user"></i><span>Profile</span>
-                </a>
-            </div>
+        <aside class="col-lg-2 fc-admin-sidebar min-vh-100 p-3 d-none d-lg-block">
+            @include('admin.partials.sidebar-menu')
         </aside>
-        <main class="col-lg-10 p-4 fc-admin-content">
+
+        <main class="col-lg-10 p-3 p-lg-4 fc-admin-content">
             @include('admin.partials.alerts')
             @yield('content')
         </main>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-start fc-admin-sidebar" tabindex="-1" id="fcAdminSidebar" aria-labelledby="fcAdminSidebarLabel">
+    <div class="offcanvas-header">
+        <div class="d-flex align-items-center gap-2">
+            <img src="{{ asset(config('store.brand.logo_mark_path')) }}" alt="{{ config('store.brand.logo_alt') }}" style="height:28px;width:auto;">
+            <h5 class="offcanvas-title mb-0" id="fcAdminSidebarLabel">Admin menu</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-3">
+        @include('admin.partials.sidebar-menu')
+        <div class="mt-3 pt-3 border-top">
+            <form method="POST" action="{{ route('admin.logout') }}">
+                @csrf
+                <button class="btn btn-outline-dark w-100" type="submit">Logout</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -308,6 +311,21 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     lucide.createIcons();
+</script>
+<script>
+    (() => {
+        const offcanvasEl = document.getElementById('fcAdminSidebar');
+        if (!offcanvasEl) return;
+
+        offcanvasEl.addEventListener('click', (e) => {
+            const link = e.target?.closest?.('a');
+            if (!link) return;
+            if (link.getAttribute('href')?.startsWith('#')) return;
+
+            const instance = window.bootstrap?.Offcanvas?.getInstance(offcanvasEl);
+            instance?.hide();
+        });
+    })();
 </script>
 <script>
     (() => {

@@ -12,7 +12,7 @@
             ->whereNotNull('color_id')
             ->groupBy('color_id')
             ->map(fn ($imgs) => [
-                ['url' => $imgs->sortBy('sort_order')->first()?->image_url, 'alt' => $product->name],
+                ['url' => $imgs->sortBy('sort_order')->first()?->image_thumb_url, 'alt' => $product->name],
             ])
             ->filter(fn ($arr) => !empty($arr[0]['url']))
             ->toArray()
@@ -39,7 +39,7 @@
         'name' => $product->name,
         'meta' => trim(($product->gender_target?->value ?? '') . ($product->category?->name ? ' / ' . $product->category->name : '')),
         'url' => route('products.show', $product->slug),
-        'defaultImageUrl' => $product->main_image_url,
+        'defaultImageUrl' => $product->image_thumb_url,
         'defaultColorId' => $colors->first()?->id,
         'priceHtml' => $priceHtml,
         'colors' => $colors->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'hex' => $c->hex_code])->values()->toArray(),
@@ -47,13 +47,25 @@
         'variants' => $variantData,
         'imagesByColor' => $imagesByColor,
     ];
+
+    $maxCardSizes = 3;
+    $maxCardColors = 3;
+    $sizesShown = $sizes->take($maxCardSizes);
+    $colorsShown = $colors->take($maxCardColors);
+    $moreSizes = max(0, $sizes->count() - $sizesShown->count());
+    $moreColors = max(0, $colors->count() - $colorsShown->count());
 @endphp
 
 <article class="fc-product-card fc-pcard h-100">
     <div class="fc-pcard-media">
         <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none d-block">
             <div class="fc-media">
-                <img src="{{ $product->main_image_url }}" alt="{{ $product->name }}" class="fc-card-img" data-fc-default="{{ $product->main_image_url }}">
+                <img src="{{ $product->image_thumb_url }}"
+                     alt="{{ $product->name }}"
+                     class="fc-card-img"
+                     data-fc-default="{{ $product->image_thumb_url }}"
+                     loading="lazy"
+                     decoding="async">
             </div>
         </a>
 
@@ -110,15 +122,18 @@
 
         @if($sizes->isNotEmpty())
             <div class="fc-pcard-sizes" aria-label="Available sizes">
-                @foreach($sizes->take(6) as $size)
+                @foreach($sizesShown as $size)
                     <span class="fc-pcard-size">{{ $size->name }}</span>
                 @endforeach
+                @if($moreSizes > 0)
+                    <span class="fc-pcard-size fc-pcard-more" aria-label="{{ $moreSizes }} more sizes">+{{ $moreSizes }}</span>
+                @endif
             </div>
         @endif
 
         @if($colors->isNotEmpty())
             <div class="fc-card-swatches fc-pcard-swatches" aria-label="Available colors">
-                @foreach($colors as $color)
+                @foreach($colorsShown as $color)
                     <button
                         type="button"
                         class="fc-card-swatch-btn"
@@ -131,6 +146,9 @@
                         <span class="fc-card-swatch" style="background: {{ $color->hex_code ?: '#111' }}"></span>
                     </button>
                 @endforeach
+                @if($moreColors > 0)
+                    <span class="fc-card-swatch fc-card-swatch-more" aria-label="{{ $moreColors }} more colors">+{{ $moreColors }}</span>
+                @endif
             </div>
         @endif
     </div>

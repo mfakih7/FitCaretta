@@ -6,7 +6,8 @@
     @php
         $galleryItems = collect([
             [
-                'url' => $product->main_image_url,
+                'url' => $product->image_medium_url,
+                'thumb_url' => $product->image_thumb_url,
                 'color_id' => null,
                 'alt' => $product->name,
             ],
@@ -14,7 +15,8 @@
             $product->images
                 ->sortBy('sort_order')
                 ->map(fn ($img) => [
-                    'url' => $img->image_url,
+                    'url' => $img->image_medium_url,
+                    'thumb_url' => $img->image_thumb_url,
                     'color_id' => $img->color_id,
                     'alt' => $img->alt_text ?: $product->name,
                 ])
@@ -26,11 +28,12 @@
         $images = $galleryItems->pluck('url');
         $imagesByColor = $product->images
             ->sortBy('sort_order')
-            ->filter(fn ($img) => !empty($img->image_path) && !empty($img->image_url))
+            ->filter(fn ($img) => !empty($img->image_path) && !empty($img->image_medium_url))
             ->groupBy(fn ($img) => (string) ($img->color_id ?? 'null'))
             ->map(fn ($imgs) => $imgs->map(fn ($img) => [
                 'id' => $img->id,
-                'url' => $img->image_url,
+                'url' => $img->image_medium_url,
+                'thumb_url' => $img->image_thumb_url,
                 'color_id' => $img->color_id,
                 'alt' => $img->alt_text ?: $product->name,
             ])->values())
@@ -131,13 +134,21 @@
                                     data-color-id="{{ $item['color_id'] }}"
                                 >
                                     <span class="fc-pdp-thumb">
-                                        <img src="{{ $item['url'] }}" alt="{{ $item['alt'] }}" class="product-thumb-image">
+                                        <img src="{{ $item['thumb_url'] ?? $item['url'] }}"
+                                             alt="{{ $item['alt'] }}"
+                                             class="product-thumb-image"
+                                             loading="lazy"
+                                             decoding="async">
                                     </span>
                                 </button>
                             @endforeach
                         </div>
                         <div class="fc-pdp-hero">
-                            <img id="main-product-image" src="{{ $images->first() }}" alt="{{ $product->name }}">
+                            <img id="main-product-image"
+                                 src="{{ $images->first() }}"
+                                 alt="{{ $product->name }}"
+                                 loading="eager"
+                                 decoding="async">
                         </div>
                     </div>
                 @else

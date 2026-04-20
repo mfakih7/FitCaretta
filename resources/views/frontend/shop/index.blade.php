@@ -23,25 +23,57 @@
                             $sortVal = (string) request('sort', 'latest');
                             $qs = request()->except(['sort', 'page']);
                         @endphp
-                        <form method="GET" action="{{ url()->current() }}" class="fc-mobile-sort">
-                            @foreach($qs as $k => $v)
-                                @if(is_array($v))
-                                    @foreach($v as $vv)
-                                        <input type="hidden" name="{{ $k }}[]" value="{{ $vv }}">
-                                    @endforeach
-                                @else
-                                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                                @endif
-                            @endforeach
-                            <select name="sort" class="form-select form-select-sm fc-mobile-sort-select" onchange="this.form.submit()">
-                                <option value="latest" @selected($sortVal==='latest')>Latest</option>
-                                <option value="price_asc" @selected($sortVal==='price_asc')>Price ↑</option>
-                                <option value="price_desc" @selected($sortVal==='price_desc')>Price ↓</option>
-                            </select>
-                        </form>
-                        <button class="btn btn-outline-dark btn-sm fc-mobile-filter-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#fcFiltersCanvas" aria-controls="fcFiltersCanvas">
-                            Filters
+
+                        <button class="fc-icon-btn fc-mobile-icon-btn"
+                                type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#fcFiltersCanvas"
+                                aria-controls="fcFiltersCanvas"
+                                aria-label="Filters"
+                                title="Filters">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 5h18"></path>
+                                <path d="M7 12h10"></path>
+                                <path d="M10 19h4"></path>
+                            </svg>
                         </button>
+
+                        <div class="dropdown">
+                            <button class="fc-icon-btn fc-mobile-icon-btn @if($sortVal !== 'latest') is-active @endif"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    aria-label="Sort"
+                                    title="Sort">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M10 6h10"></path>
+                                    <path d="M10 12h7"></path>
+                                    <path d="M10 18h4"></path>
+                                    <path d="M4 7l2-2 2 2"></path>
+                                    <path d="M6 5v14"></path>
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end fc-sort-menu fc-sort-menu-mobile">
+                                <li>
+                                    <a class="dropdown-item @if($sortVal==='latest') active @endif"
+                                       href="{{ url()->current() . '?' . http_build_query(array_merge($qs, ['sort' => 'latest'])) }}">
+                                        Latest
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @if($sortVal==='price_asc') active @endif"
+                                       href="{{ url()->current() . '?' . http_build_query(array_merge($qs, ['sort' => 'price_asc'])) }}">
+                                        Price ↑
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @if($sortVal==='price_desc') active @endif"
+                                       href="{{ url()->current() . '?' . http_build_query(array_merge($qs, ['sort' => 'price_desc'])) }}">
+                                        Price ↓
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

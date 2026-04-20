@@ -33,7 +33,8 @@ class ProductImage extends Model
 
     public function getImageUrlAttribute(): string
     {
-        $path = $this->image_path;
+        // Prefer optimized medium variant when available.
+        $path = $this->image_medium_path ?: $this->image_path;
 
         if (! $path) {
             return asset(Product::DEFAULT_PLACEHOLDER);
@@ -51,6 +52,47 @@ class ProductImage extends Model
             return asset('storage/' . ltrim($path, '/'));
         }
 
+        return asset(Product::DEFAULT_PLACEHOLDER);
+    }
+
+    public function getImageThumbUrlAttribute(): string
+    {
+        $path = $this->image_thumb_path ?: $this->image_medium_path ?: $this->image_path;
+        if (! $path) {
+            return asset(Product::DEFAULT_PLACEHOLDER);
+        }
+        if (Str::startsWith($path, ['http://', 'https://', 'data:', '/'])) {
+            return $path;
+        }
+        if (Str::startsWith($path, 'images/')) {
+            return asset($path);
+        }
+        if (Storage::disk('public')->exists($path)) {
+            return asset('storage/' . ltrim($path, '/'));
+        }
+        return asset(Product::DEFAULT_PLACEHOLDER);
+    }
+
+    public function getImageMediumUrlAttribute(): string
+    {
+        return $this->image_url;
+    }
+
+    public function getImageOriginalUrlAttribute(): string
+    {
+        $path = $this->image_original_path ?: $this->image_path;
+        if (! $path) {
+            return asset(Product::DEFAULT_PLACEHOLDER);
+        }
+        if (Str::startsWith($path, ['http://', 'https://', 'data:', '/'])) {
+            return $path;
+        }
+        if (Str::startsWith($path, 'images/')) {
+            return asset($path);
+        }
+        if (Storage::disk('public')->exists($path)) {
+            return asset('storage/' . ltrim($path, '/'));
+        }
         return asset(Product::DEFAULT_PLACEHOLDER);
     }
 }

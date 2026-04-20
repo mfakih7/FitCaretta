@@ -74,6 +74,11 @@ class Product extends Model
 
     public function getMainImageUrlAttribute(): string
     {
+        // Prefer optimized variants when available.
+        if ($this->main_image_medium_path) {
+            return $this->resolveImageUrl($this->main_image_medium_path);
+        }
+
         if ($this->main_image_path) {
             return $this->resolveImageUrl($this->main_image_path);
         }
@@ -83,6 +88,34 @@ class Product extends Model
             : $this->images()->orderBy('sort_order')->value('image_path');
 
         return $this->resolveImageUrl($galleryFirstPath);
+    }
+
+    public function getImageThumbUrlAttribute(): string
+    {
+        if ($this->main_image_thumb_path) {
+            return $this->resolveImageUrl($this->main_image_thumb_path);
+        }
+        // fallback
+        return $this->main_image_url;
+    }
+
+    public function getImageMediumUrlAttribute(): string
+    {
+        if ($this->main_image_medium_path) {
+            return $this->resolveImageUrl($this->main_image_medium_path);
+        }
+        return $this->main_image_url;
+    }
+
+    public function getImageOriginalUrlAttribute(): string
+    {
+        if ($this->main_image_original_path) {
+            return $this->resolveImageUrl($this->main_image_original_path);
+        }
+        if ($this->main_image_path) {
+            return $this->resolveImageUrl($this->main_image_path);
+        }
+        return asset(self::DEFAULT_PLACEHOLDER);
     }
 
     public function resolveImageUrl(?string $path): string

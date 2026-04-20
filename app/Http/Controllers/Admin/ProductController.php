@@ -13,6 +13,7 @@ use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductImage;
 use App\Models\Catalog\ProductType;
 use App\Models\Catalog\Size;
+use App\Services\Images\ImageVariantsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,10 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    public function __construct(private readonly ImageVariantsService $imageVariants)
+    {
+    }
+
     public function index(Request $request): View
     {
         $q = trim((string) $request->query('q', ''));
@@ -53,13 +58,28 @@ class ProductController extends Controller
 
         DB::transaction(function () use ($request, $validated, &$createdProductId): void {
             $mainImagePath = null;
+            $thumbPath = null;
+            $mediumPath = null;
+            $originalPath = null;
             if ($request->hasFile('main_image')) {
-                $mainImagePath = $request->file('main_image')->store('products/main', 'public');
+                $variants = $this->imageVariants->storeProductImageVariants(
+                    $request->file('main_image'),
+                    'products/original',
+                    'products/thumb',
+                    'products/medium'
+                );
+                $mainImagePath = $variants['medium_path'];
+                $thumbPath = $variants['thumb_path'];
+                $mediumPath = $variants['medium_path'];
+                $originalPath = $variants['original_path'];
             }
 
             $product = Product::create([
                 ...$this->extractProductData($validated),
                 'main_image_path' => $mainImagePath,
+                'main_image_thumb_path' => $thumbPath,
+                'main_image_medium_path' => $mediumPath,
+                'main_image_original_path' => $originalPath,
             ]);
             $createdProductId = $product->id;
 
@@ -96,10 +116,23 @@ class ProductController extends Controller
             $payload = $this->extractProductData($validated);
 
             if ($request->hasFile('main_image')) {
-                if ($product->main_image_path) {
-                    Storage::disk('public')->delete($product->main_image_path);
-                }
-                $payload['main_image_path'] = $request->file('main_image')->store('products/main', 'public');
+                Storage::disk('public')->delete(array_filter([
+                    $product->main_image_path,
+                    $product->main_image_thumb_path,
+                    $product->main_image_medium_path,
+                    $product->main_image_original_path,
+                ]));
+
+                $variants = $this->imageVariants->storeProductImageVariants(
+                    $request->file('main_image'),
+                    'products/original',
+                    'products/thumb',
+                    'products/medium'
+                );
+                $payload['main_image_path'] = $variants['medium_path'];
+                $payload['main_image_thumb_path'] = $variants['thumb_path'];
+                $payload['main_image_medium_path'] = $variants['medium_path'];
+                $payload['main_image_original_path'] = $variants['original_path'];
             }
 
             $product->update($payload);
@@ -124,7 +157,12 @@ class ProductController extends Controller
             abort(404);
         }
 
-        Storage::disk('public')->delete($image->image_path);
+        Storage::disk('public')->delete(array_filter([
+            $image->image_path,
+            $image->image_thumb_path,
+            $image->image_medium_path,
+            $image->image_original_path,
+        ]));
         $image->delete();
 
         return redirect()
@@ -218,12 +256,20 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->main_image_path) {
-            Storage::disk('public')->delete($product->main_image_path);
-        }
+        Storage::disk('public')->delete(array_filter([
+            $product->main_image_path,
+            $product->main_image_thumb_path,
+            $product->main_image_medium_path,
+            $product->main_image_original_path,
+        ]));
 
         foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->image_path);
+            Storage::disk('public')->delete(array_filter([
+                $image->image_path,
+                $image->image_thumb_path,
+                $image->image_medium_path,
+                $image->image_original_path,
+            ]));
         }
 
         $product->delete();
@@ -382,10 +428,19 @@ class ProductController extends Controller
             }
 
             $nextSort++;
-            $path = $file->store('products/gallery', 'public');
+            $variants = $this->imageVariants->storeProductImageVariants(
+                $file,
+                'products/gallery/original',
+                'products/gallery/thumb',
+                'products/gallery/medium'
+            );
+            $path = $variants['medium_path'];
 
             $product->images()->create([
                 'image_path' => $path,
+                'image_thumb_path' => $variants['thumb_path'],
+                'image_medium_path' => $variants['medium_path'],
+                'image_original_path' => $variants['original_path'],
                 'sort_order' => $nextSort,
                 'color_id' => isset($colorIds[$index]) && $colorIds[$index] ? (int) $colorIds[$index] : null,
             ]);
