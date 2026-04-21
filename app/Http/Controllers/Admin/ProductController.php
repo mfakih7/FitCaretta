@@ -66,7 +66,9 @@ class ProductController extends Controller
                     $request->file('main_image'),
                     'products/original',
                     'products/thumb',
-                    'products/medium'
+                    'products/medium',
+                    600,
+                    1200
                 );
                 $mainImagePath = $variants['medium_path'];
                 $thumbPath = $variants['thumb_path'];
@@ -127,7 +129,9 @@ class ProductController extends Controller
                     $request->file('main_image'),
                     'products/original',
                     'products/thumb',
-                    'products/medium'
+                    'products/medium',
+                    600,
+                    1200
                 );
                 $payload['main_image_path'] = $variants['medium_path'];
                 $payload['main_image_thumb_path'] = $variants['thumb_path'];
@@ -432,7 +436,9 @@ class ProductController extends Controller
                 $file,
                 'products/gallery/original',
                 'products/gallery/thumb',
-                'products/gallery/medium'
+                'products/gallery/medium',
+                600,
+                1200
             );
             $path = $variants['medium_path'];
 

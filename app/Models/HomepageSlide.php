@@ -17,6 +17,10 @@ class HomepageSlide extends Model
         'button_two_text',
         'button_two_link',
         'image_path',
+        'image_original_path',
+        'image_thumb_path',
+        'image_medium_path',
+        'image_hero_path',
         'is_active',
         'sort_order',
     ];
@@ -28,7 +32,49 @@ class HomepageSlide extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        $path = (string) ($this->image_path ?? '');
+        // Prefer optimized hero variant when available.
+        $path = (string) ($this->image_hero_path ?: $this->image_medium_path ?: $this->image_path ?: '');
+        if ($path === '') {
+            return null;
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://', 'data:', '/'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return asset('storage/' . ltrim($path, '/'));
+        }
+
+        return null;
+    }
+
+    public function getImageThumbUrlAttribute(): ?string
+    {
+        return $this->resolvePublicImageUrl((string) ($this->image_thumb_path ?: $this->image_medium_path ?: $this->image_path ?: ''));
+    }
+
+    public function getImageMediumUrlAttribute(): ?string
+    {
+        return $this->resolvePublicImageUrl((string) ($this->image_medium_path ?: $this->image_hero_path ?: $this->image_path ?: ''));
+    }
+
+    public function getImageHeroUrlAttribute(): ?string
+    {
+        return $this->resolvePublicImageUrl((string) ($this->image_hero_path ?: $this->image_medium_path ?: $this->image_path ?: ''));
+    }
+
+    public function getImageOriginalUrlAttribute(): ?string
+    {
+        return $this->resolvePublicImageUrl((string) ($this->image_original_path ?: $this->image_path ?: ''));
+    }
+
+    private function resolvePublicImageUrl(string $path): ?string
+    {
         if ($path === '') {
             return null;
         }

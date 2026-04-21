@@ -11,13 +11,14 @@ use Illuminate\Support\Str;
 
 class BackfillImageVariants extends Command
 {
-    protected $signature = 'fitcaretta:images:backfill {--dry-run} {--limit=0}';
+    protected $signature = 'fitcaretta:images:backfill {--dry-run} {--limit=0} {--force}';
     protected $description = 'Generate thumb/medium WebP variants for existing product images.';
 
     public function handle(ImageVariantsService $images): int
     {
         $dry = (bool) $this->option('dry-run');
         $limit = (int) $this->option('limit');
+        $force = (bool) $this->option('force');
         $disk = Storage::disk('public');
 
         $this->info('Backfilling product main images...');
@@ -27,7 +28,7 @@ class BackfillImageVariants extends Command
             ->get();
 
         foreach ($products as $p) {
-            if ($p->main_image_thumb_path && $p->main_image_medium_path && $p->main_image_original_path) {
+            if (! $force && $p->main_image_thumb_path && $p->main_image_medium_path && $p->main_image_original_path) {
                 continue;
             }
 
@@ -41,7 +42,10 @@ class BackfillImageVariants extends Command
             $medium = $p->main_image_medium_path ?: ('products/medium/' . $uuid . '.webp');
 
             if (! $dry) {
-                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium);
+                if ($force) {
+                    $disk->delete(array_filter([$thumb, $medium]));
+                }
+                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium, 600, 1200);
                 $p->forceFill([
                     'main_image_original_path' => $p->main_image_original_path ?: $src,
                     'main_image_thumb_path' => $thumb,
@@ -58,7 +62,7 @@ class BackfillImageVariants extends Command
             ->get();
 
         foreach ($imgs as $img) {
-            if ($img->image_thumb_path && $img->image_medium_path && $img->image_original_path) {
+            if (! $force && $img->image_thumb_path && $img->image_medium_path && $img->image_original_path) {
                 continue;
             }
 
@@ -72,7 +76,10 @@ class BackfillImageVariants extends Command
             $medium = $img->image_medium_path ?: ('products/gallery/medium/' . $uuid . '.webp');
 
             if (! $dry) {
-                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium);
+                if ($force) {
+                    $disk->delete(array_filter([$thumb, $medium]));
+                }
+                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium, 600, 1200);
                 $img->forceFill([
                     'image_original_path' => $img->image_original_path ?: $src,
                     'image_thumb_path' => $thumb,

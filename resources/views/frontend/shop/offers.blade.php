@@ -80,7 +80,7 @@
             <div class="row g-3">
                 @forelse($products as $product)
                     <div class="col-6 col-md-4 col-xl-4">
-                        @include('frontend.partials.product-card', ['product' => $product])
+                        @include('frontend.partials.product-card', ['product' => $product, 'eagerImage' => $loop->index < 4])
                     </div>
                 @empty
                     <div class="col-12"><div class="alert alert-light border">No active offers right now.</div></div>

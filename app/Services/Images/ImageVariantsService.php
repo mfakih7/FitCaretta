@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class ImageVariantsService
 {
     public function __construct(
-        private readonly int $webpQuality = 82
+        private readonly int $webpQuality = 86
     ) {
     }
 
@@ -26,8 +26,8 @@ class ImageVariantsService
         string $originalDir,
         string $thumbDir,
         string $mediumDir,
-        int $thumbWidth = 300,
-        int $mediumWidth = 600
+        int $thumbWidth = 600,
+        int $mediumWidth = 1200
     ): array {
         $disk = Storage::disk('public');
 
@@ -57,8 +57,8 @@ class ImageVariantsService
         string $existingPublicPath,
         string $thumbPath,
         string $mediumPath,
-        int $thumbWidth = 300,
-        int $mediumWidth = 600
+        int $thumbWidth = 600,
+        int $mediumWidth = 1200
     ): void {
         $disk = Storage::disk('public');
         if (! $disk->exists($existingPublicPath)) {
@@ -71,6 +71,73 @@ class ImageVariantsService
         }
         if (! $disk->exists($mediumPath)) {
             $disk->put($mediumPath, $this->toWebpBytes($absOriginal, $mediumWidth), ['visibility' => 'public']);
+        }
+    }
+
+    /**
+     * Store original + generate thumb/medium/hero WebP variants for homepage slides.
+     */
+    public function storeHomepageSlideImageVariants(
+        UploadedFile $file,
+        int $thumbWidth = 480,
+        int $mediumWidth = 1280,
+        int $heroWidth = 1920
+    ): array {
+        $disk = Storage::disk('public');
+
+        $uuid = (string) Str::uuid();
+        $ext = strtolower($file->getClientOriginalExtension() ?: 'bin');
+
+        $originalDir = 'homepage-slides/original';
+        $thumbDir = 'homepage-slides/thumb';
+        $mediumDir = 'homepage-slides/medium';
+        $heroDir = 'homepage-slides/hero';
+
+        $originalPath = $file->storeAs($originalDir, $uuid . '.' . $ext, 'public');
+        $absOriginal = $disk->path($originalPath);
+
+        $thumbPath = $thumbDir . '/' . $uuid . '.webp';
+        $mediumPath = $mediumDir . '/' . $uuid . '.webp';
+        $heroPath = $heroDir . '/' . $uuid . '.webp';
+
+        $disk->put($thumbPath, $this->toWebpBytes($absOriginal, $thumbWidth), ['visibility' => 'public']);
+        $disk->put($mediumPath, $this->toWebpBytes($absOriginal, $mediumWidth), ['visibility' => 'public']);
+        $disk->put($heroPath, $this->toWebpBytes($absOriginal, $heroWidth), ['visibility' => 'public']);
+
+        return [
+            'original_path' => $originalPath,
+            'thumb_path' => $thumbPath,
+            'medium_path' => $mediumPath,
+            'hero_path' => $heroPath,
+        ];
+    }
+
+    /**
+     * Generate slide variants from an existing public disk path.
+     */
+    public function generateHomepageSlideVariantsFromExistingPublicPath(
+        string $existingPublicPath,
+        string $thumbPath,
+        string $mediumPath,
+        string $heroPath,
+        int $thumbWidth = 480,
+        int $mediumWidth = 1280,
+        int $heroWidth = 1920
+    ): void {
+        $disk = Storage::disk('public');
+        if (! $disk->exists($existingPublicPath)) {
+            return;
+        }
+        $absOriginal = $disk->path($existingPublicPath);
+
+        if (! $disk->exists($thumbPath)) {
+            $disk->put($thumbPath, $this->toWebpBytes($absOriginal, $thumbWidth), ['visibility' => 'public']);
+        }
+        if (! $disk->exists($mediumPath)) {
+            $disk->put($mediumPath, $this->toWebpBytes($absOriginal, $mediumWidth), ['visibility' => 'public']);
+        }
+        if (! $disk->exists($heroPath)) {
+            $disk->put($heroPath, $this->toWebpBytes($absOriginal, $heroWidth), ['visibility' => 'public']);
         }
     }
 

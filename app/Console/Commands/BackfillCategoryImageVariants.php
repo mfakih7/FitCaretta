@@ -10,13 +10,14 @@ use Illuminate\Support\Str;
 
 class BackfillCategoryImageVariants extends Command
 {
-    protected $signature = 'fitcaretta:categories:images:backfill {--dry-run} {--limit=0}';
+    protected $signature = 'fitcaretta:categories:images:backfill {--dry-run} {--limit=0} {--force}';
     protected $description = 'Generate thumb/medium WebP variants for existing category images.';
 
     public function handle(ImageVariantsService $images): int
     {
         $dry = (bool) $this->option('dry-run');
         $limit = (int) $this->option('limit');
+        $force = (bool) $this->option('force');
         $disk = Storage::disk('public');
 
         $cats = Category::query()
@@ -25,7 +26,7 @@ class BackfillCategoryImageVariants extends Command
             ->get();
 
         foreach ($cats as $c) {
-            if ($c->image_thumb_path && $c->image_medium_path && $c->image_original_path) {
+            if (! $force && $c->image_thumb_path && $c->image_medium_path && $c->image_original_path) {
                 continue;
             }
 
@@ -39,7 +40,10 @@ class BackfillCategoryImageVariants extends Command
             $medium = $c->image_medium_path ?: ('categories/medium/' . $uuid . '.webp');
 
             if (! $dry) {
-                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium);
+                if ($force) {
+                    $disk->delete(array_filter([$thumb, $medium]));
+                }
+                $images->generateVariantsFromExistingPublicPath($src, $thumb, $medium, 700, 1400);
                 $c->forceFill([
                     'image_original_path' => $c->image_original_path ?: $src,
                     'image_thumb_path' => $thumb,

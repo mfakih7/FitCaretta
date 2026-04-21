@@ -20,12 +20,30 @@
                 <div class="carousel-inner">
                     @foreach($slides as $i => $slide)
                         @php
-                            $bg = $slide->image_url ? ("background-image:url('" . e($slide->image_url) . "');") : '';
                             $hasBtn1 = filled($slide->button_one_text) && filled($slide->button_one_link);
                             $hasBtn2 = filled($slide->button_two_text) && filled($slide->button_two_link);
+                            $isFirst = $i === 0;
+                            $heroUrl = $slide->image_hero_url ?: $slide->image_url;
+                            $mediumUrl = $slide->image_medium_url ?: $heroUrl;
                         @endphp
                         <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
-                            <div class="fc-hero-slide p-4 p-md-5" style="{{ $bg }}">
+                            <div class="fc-hero-slide p-4 p-md-5">
+                                @if($heroUrl)
+                                    <picture class="fc-hero-media" aria-hidden="true">
+                                        <source
+                                            type="image/webp"
+                                            srcset="{{ $mediumUrl }} 960w, {{ $heroUrl }} 1600w"
+                                            sizes="100vw"
+                                        >
+                                        <img
+                                            src="{{ $heroUrl }}"
+                                            alt=""
+                                            decoding="async"
+                                            loading="{{ $isFirst ? 'eager' : 'lazy' }}"
+                                            fetchpriority="{{ $isFirst ? 'high' : 'low' }}"
+                                        >
+                                    </picture>
+                                @endif
                                 <div class="container-fluid px-3 px-lg-5 fc-hero-slide-inner">
                                     <div class="mx-auto" style="max-width: 1320px;">
                                     <div class="row align-items-center gy-4">
@@ -83,21 +101,33 @@
     <section class="mb-4 mb-lg-5">
         <div class="d-flex justify-content-between align-items-center mb-3 fc-home-heading-row">
             <h2 class="fc-section-title h4 mb-0">Featured Categories</h2>
-            <a href="{{ route('shop') }}">View All Products</a>
+            <a href="{{ route('shop') }}" class="fc-mobile-link fc-mobile-link--arrow">
+                <span>View all</span>
+                <i class="fa-solid fa-chevron-right fc-link-icon" aria-hidden="true"></i>
+            </a>
         </div>
         <div class="row g-3">
             @forelse($featuredCategories as $category)
                 <div class="col-6 col-md-4 col-lg-4">
                     <a href="{{ route('shop.category', $category->slug) }}" class="fc-category-tile fc-hover-zoom h-100">
                         <div class="fc-media">
-                            <img src="{{ $category->image_thumb_url }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
+                            <img
+                                src="{{ $category->image_medium_url }}"
+                                alt="{{ $category->name }}"
+                                loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
+                                fetchpriority="{{ $loop->index < 1 ? 'high' : 'auto' }}"
+                                decoding="async"
+                            >
                             <div class="fc-category-tile-label">Category</div>
                         </div>
                         <div class="fc-category-tile-body">
                             <h3 class="fc-category-tile-title">{{ $category->name }}</h3>
                             <div class="d-flex justify-content-between align-items-center mt-1">
                                 <div class="fc-category-tile-meta">{{ $category->products_count }} products</div>
-                                <span class="fc-link-underline small">Shop</span>
+                                <span class="fc-mobile-link fc-mobile-link--cta fc-mobile-link--arrow" aria-hidden="true">
+                                    <span>Shop</span>
+                                    <i class="fa-solid fa-chevron-right fc-link-icon" aria-hidden="true"></i>
+                                </span>
                             </div>
                         </div>
                     </a>
@@ -111,12 +141,15 @@
     <section class="mb-4 mb-lg-5">
         <div class="d-flex justify-content-between align-items-center mb-3 fc-home-heading-row">
             <h2 class="fc-section-title h4 mb-0">Featured Products</h2>
-            <a href="{{ route('shop') }}">View All Products</a>
+            <a href="{{ route('shop') }}" class="fc-mobile-link fc-mobile-link--arrow">
+                <span>View all</span>
+                <i class="fa-solid fa-chevron-right fc-link-icon" aria-hidden="true"></i>
+            </a>
         </div>
         <div class="row g-3">
             @forelse($featuredProducts as $product)
                 <div class="col-6 col-md-4 col-lg-3">
-                    @include('frontend.partials.product-card', ['product' => $product])
+                    @include('frontend.partials.product-card', ['product' => $product, 'eagerImage' => $loop->index < 4])
                 </div>
             @empty
                 <div class="col-12 text-muted">No featured products yet.</div>
@@ -127,12 +160,15 @@
     <section class="mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3 fc-home-heading-row">
             <h2 class="fc-section-title h4 mb-0">New Arrivals</h2>
-            <a href="{{ route('shop') }}">View All Products</a>
+            <a href="{{ route('shop') }}" class="fc-mobile-link fc-mobile-link--arrow">
+                <span>View all</span>
+                <i class="fa-solid fa-chevron-right fc-link-icon" aria-hidden="true"></i>
+            </a>
         </div>
         <div class="row g-3">
             @forelse($newArrivals as $product)
                 <div class="col-6 col-md-4 col-lg-3">
-                    @include('frontend.partials.product-card', ['product' => $product])
+                    @include('frontend.partials.product-card', ['product' => $product, 'eagerImage' => $loop->index < 4])
                 </div>
             @empty
                 <div class="col-12 text-muted">No new arrivals yet.</div>

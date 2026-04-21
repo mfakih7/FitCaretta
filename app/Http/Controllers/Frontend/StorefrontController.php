@@ -14,6 +14,7 @@ use App\Services\Pricing\DiscountResolverService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class StorefrontController extends Controller
@@ -30,10 +31,14 @@ class StorefrontController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
+
         $featuredProducts = $this->attachPricing(
             Product::query()
                 ->with([
                     'category:id,name',
+                    'discounts',
+                    'category.discounts',
                     'images:id,product_id,color_id,image_path,alt_text,sort_order',
                     'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
                 ])
@@ -42,12 +47,14 @@ class StorefrontController extends Controller
                 ->latest('id')
                 ->limit(8)
                 ->get()
-        );
+        , $activeDiscounts);
 
         $newArrivals = $this->attachPricing(
             Product::query()
                 ->with([
                     'category:id,name',
+                    'discounts',
+                    'category.discounts',
                     'images:id,product_id,color_id,image_path,alt_text,sort_order',
                     'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
                 ])
@@ -56,7 +63,7 @@ class StorefrontController extends Controller
                 ->latest('id')
                 ->limit(8)
                 ->get()
-        );
+        , $activeDiscounts);
 
         $featuredCategories = Category::query()
             ->where('is_active', true)
@@ -71,8 +78,9 @@ class StorefrontController extends Controller
 
     public function shop(Request $request): View
     {
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)->paginate(12)->withQueryString();
-        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest')));
+        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts));
 
         return view('frontend.shop.index', [
             'title' => 'Shop',
@@ -83,13 +91,14 @@ class StorefrontController extends Controller
 
     public function newArrivals(Request $request): View
     {
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)
             ->where('is_new_arrival', true)
             ->paginate(12)
             ->withQueryString();
 
         $products->setCollection(
-            $this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'))
+            $this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts)
         );
 
         return view('frontend.shop.index', [
@@ -102,8 +111,9 @@ class StorefrontController extends Controller
     public function men(Request $request): View
     {
         $request->merge(['gender' => 'men']);
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)->paginate(12)->withQueryString();
-        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest')));
+        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts));
 
         return view('frontend.shop.index', [
             'title' => 'Men',
@@ -115,8 +125,9 @@ class StorefrontController extends Controller
     public function women(Request $request): View
     {
         $request->merge(['gender' => 'women']);
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)->paginate(12)->withQueryString();
-        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest')));
+        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts));
 
         return view('frontend.shop.index', [
             'title' => 'Women',
@@ -130,8 +141,9 @@ class StorefrontController extends Controller
         $category = Category::query()->where('is_active', true)->where('slug', $slug)->firstOrFail();
         $request->merge(['category_id' => $category->id]);
 
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)->paginate(12)->withQueryString();
-        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest')));
+        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts));
 
         return view('frontend.shop.index', [
             'title' => 'Category: ' . $category->name,
@@ -147,6 +159,8 @@ class StorefrontController extends Controller
             ->with([
                 'category:id,name,slug',
                 'productType:id,name',
+                'discounts',
+                'category.discounts',
                 'images:id,product_id,color_id,image_path,alt_text,sort_order',
                 'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
             ])
@@ -154,12 +168,15 @@ class StorefrontController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $pricing = $this->discountResolver->calculateEffectivePrice($product);
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
+        $pricing = $this->discountResolver->calculateEffectivePriceWithActiveDiscounts($product, $activeDiscounts);
 
         $relatedProducts = $this->attachPricing(
             Product::query()
                 ->with([
                     'category:id,name',
+                    'discounts',
+                    'category.discounts',
                     'images:id,product_id,color_id,image_path,alt_text,sort_order',
                     'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
                 ])
@@ -169,7 +186,7 @@ class StorefrontController extends Controller
                 ->latest('id')
                 ->limit(4)
                 ->get()
-        );
+        , $activeDiscounts);
 
         return view('frontend.products.show', compact('product', 'pricing', 'relatedProducts'));
     }
@@ -178,6 +195,7 @@ class StorefrontController extends Controller
     {
         $term = (string) $request->query('q', '');
 
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         $products = $this->buildCatalogQuery($request)
             ->when($term !== '', function (Builder $query) use ($term) {
                 $query->where(function (Builder $q) use ($term) {
@@ -190,7 +208,7 @@ class StorefrontController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest')));
+        $products->setCollection($this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts));
 
         return view('frontend.shop.search', [
             'products' => $products,
@@ -209,6 +227,7 @@ class StorefrontController extends Controller
             ->exists();
 
         $query = $this->buildCatalogQuery($request);
+        $activeDiscounts = $this->discountResolver->activeDiscounts();
         if (! $hasGlobalDiscount) {
             $query->where(function (Builder $q) {
                 $q->whereHas('discounts', fn ($d) => $this->applyActiveDiscountConstraint($d))
@@ -218,7 +237,7 @@ class StorefrontController extends Controller
 
         $products = $query->paginate(12)->withQueryString();
         $products->setCollection(
-            $this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'))
+            $this->applyPricingAndSort($products->getCollection(), (string) $request->query('sort', 'latest'), $activeDiscounts)
                 ->filter(fn ($product) => $product->pricing['discount'] !== null)
                 ->values()
         );
@@ -235,6 +254,8 @@ class StorefrontController extends Controller
             ->with([
                 'category:id,name,slug',
                 'productType:id,name',
+                'discounts',
+                'category.discounts',
                 'images:id,product_id,color_id,image_path,alt_text,sort_order',
                 'variants' => fn ($q) => $q->where('is_active', true)->with(['size:id,name', 'color:id,name,hex_code']),
             ])
@@ -323,30 +344,34 @@ class StorefrontController extends Controller
 
     private function filtersData(): array
     {
-        $priceMin = (float) Product::query()->where('is_active', true)->min('base_price');
-        $priceMax = (float) Product::query()->where('is_active', true)->max('base_price');
+        return Cache::remember('storefront.filters.v1', now()->addMinutes(3), function (): array {
+            $priceMin = (float) Product::query()->where('is_active', true)->min('base_price');
+            $priceMax = (float) Product::query()->where('is_active', true)->max('base_price');
 
-        return [
-            'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'slug']),
-            'productTypes' => ProductType::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'sizes' => Size::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
-            'colors' => Color::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'hex_code']),
-            'priceMin' => floor($priceMin),
-            'priceMax' => ceil($priceMax),
-        ];
+            return [
+                'categories' => Category::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'slug']),
+                'productTypes' => ProductType::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+                'sizes' => Size::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
+                'colors' => Color::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'hex_code']),
+                'priceMin' => floor($priceMin),
+                'priceMax' => ceil($priceMax),
+            ];
+        });
     }
 
-    private function attachPricing($products)
+    private function attachPricing($products, $activeDiscounts = null)
     {
-        return $products->map(function (Product $product) {
-            $product->pricing = $this->discountResolver->calculateEffectivePrice($product);
+        $activeDiscounts = $activeDiscounts ?: $this->discountResolver->activeDiscounts();
+
+        return $products->map(function (Product $product) use ($activeDiscounts) {
+            $product->pricing = $this->discountResolver->calculateEffectivePriceWithActiveDiscounts($product, $activeDiscounts);
             return $product;
         });
     }
 
-    private function applyPricingAndSort($products, string $sort)
+    private function applyPricingAndSort($products, string $sort, $activeDiscounts = null)
     {
-        $withPricing = $this->attachPricing($products);
+        $withPricing = $this->attachPricing($products, $activeDiscounts);
 
         if ($sort === 'discounted_price_asc') {
             return $withPricing->sortBy(fn (Product $p) => $p->pricing['effective_price'])->values();

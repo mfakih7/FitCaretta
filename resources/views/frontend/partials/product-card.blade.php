@@ -1,6 +1,7 @@
 @php
     $discount = $product->pricing['discount'] ?? null;
     $isNew = (bool) ($product->is_new_arrival ?? false);
+    $eagerImage = (bool) ($eagerImage ?? false);
     $colors = $product->variants
         ? $product->variants->pluck('color')->filter()->unique('id')->values()
         : collect();
@@ -64,7 +65,8 @@
                      alt="{{ $product->name }}"
                      class="fc-card-img"
                      data-fc-default="{{ $product->image_thumb_url }}"
-                     loading="lazy"
+                     loading="{{ $eagerImage ? 'eager' : 'lazy' }}"
+                     fetchpriority="{{ $eagerImage ? 'high' : 'auto' }}"
                      decoding="async">
             </div>
         </a>
@@ -153,26 +155,3 @@
         @endif
     </div>
 </article>
-
-<script>
-    (() => {
-        const card = document.currentScript?.previousElementSibling;
-        if (!card) return;
-        const img = card.querySelector('.fc-media img');
-        const swatches = card.querySelectorAll('[data-fc-swatch]');
-        if (!img || swatches.length === 0) return;
-
-        swatches.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const next = btn.getAttribute('data-image') || '';
-                if (!next) return;
-                img.style.opacity = '0.2';
-                img.src = next;
-                setTimeout(() => (img.style.opacity = '1'), 80);
-                swatches.forEach((b) => b.classList.remove('is-active'));
-                btn.classList.add('is-active');
-            });
-        });
-    })();
-</script>

@@ -91,16 +91,51 @@
     <div class="offcanvas-body">
         <nav aria-label="Mobile navigation">
             <ul class="nav flex-column fc-mobile-nav-list">
-                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop')) active @endif" href="{{ route('shop') }}">Shop</a></li>
-                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.men')) active @endif" href="{{ route('shop.men') }}">Men</a></li>
-                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.women')) active @endif" href="{{ route('shop.women') }}">Women</a></li>
-                <li class="nav-item"><a class="nav-link @if(request()->routeIs('shop.new')) active @endif" href="{{ route('shop.new') }}">New Arrivals</a></li>
-                <li class="nav-item"><a class="nav-link @if(request()->routeIs('offers')) active @endif" href="{{ route('offers') }}">Offers</a></li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop')) active @endif" href="{{ route('shop') }}">
+                        <i class="fa-solid fa-bag-shopping fc-nav-ico" aria-hidden="true"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.men')) active @endif" href="{{ route('shop.men') }}">
+                        <i class="fa-solid fa-person fc-nav-ico" aria-hidden="true"></i>
+                        <span>Men</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.women')) active @endif" href="{{ route('shop.women') }}">
+                        <i class="fa-solid fa-person-dress fc-nav-ico" aria-hidden="true"></i>
+                        <span>Women</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('shop.new')) active @endif" href="{{ route('shop.new') }}">
+                        <i class="fa-solid fa-star fc-nav-ico" aria-hidden="true"></i>
+                        <span>New Arrivals</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('offers')) active @endif" href="{{ route('offers') }}">
+                        <i class="fa-solid fa-tag fc-nav-ico" aria-hidden="true"></i>
+                        <span>Offers</span>
+                    </a>
+                </li>
                 @if(!empty($showAboutNav))
-                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('about.show')) active @endif" href="{{ route('about.show') }}">About</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request()->routeIs('about.show')) active @endif" href="{{ route('about.show') }}">
+                            <i class="fa-regular fa-circle-question fc-nav-ico" aria-hidden="true"></i>
+                            <span>About</span>
+                        </a>
+                    </li>
                 @endif
                 @if(!empty($showFeedbackNav))
-                    <li class="nav-item"><a class="nav-link @if(request()->routeIs('feedback.*')) active @endif" href="{{ route('feedback.create') }}">Feedback</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request()->routeIs('feedback.*')) active @endif" href="{{ route('feedback.create') }}">
+                            <i class="fa-regular fa-message fc-nav-ico" aria-hidden="true"></i>
+                            <span>Feedback</span>
+                        </a>
+                    </li>
                 @endif
             </ul>
         </nav>

@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\HomepageSlideStoreRequest;
 use App\Http\Requests\Admin\HomepageSlideUpdateRequest;
 use App\Models\HomepageSlide;
+use App\Services\Images\ImageVariantsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class HomepageSlideController extends Controller
 {
+    public function __construct(private readonly ImageVariantsService $images)
+    {
+    }
+
     public function index(): View
     {
         $slides = HomepageSlide::query()
@@ -33,7 +38,13 @@ class HomepageSlideController extends Controller
         $payload = $request->validated();
 
         if ($request->hasFile('image')) {
-            $payload['image_path'] = $request->file('image')->store('homepage-slides', 'public');
+            $variants = $this->images->storeHomepageSlideImageVariants($request->file('image'));
+            $payload['image_original_path'] = $variants['original_path'];
+            $payload['image_thumb_path'] = $variants['thumb_path'];
+            $payload['image_medium_path'] = $variants['medium_path'];
+            $payload['image_hero_path'] = $variants['hero_path'];
+            // Legacy field used by older templates/admin previews.
+            $payload['image_path'] = $variants['hero_path'];
         }
 
         HomepageSlide::create($payload);
@@ -51,10 +62,25 @@ class HomepageSlideController extends Controller
         $payload = $request->validated();
 
         if ($request->hasFile('image')) {
-            if ($homepageSlide->image_path && Storage::disk('public')->exists($homepageSlide->image_path)) {
-                Storage::disk('public')->delete($homepageSlide->image_path);
+            $disk = Storage::disk('public');
+            foreach ([
+                $homepageSlide->image_original_path,
+                $homepageSlide->image_thumb_path,
+                $homepageSlide->image_medium_path,
+                $homepageSlide->image_hero_path,
+                $homepageSlide->image_path,
+            ] as $path) {
+                if ($path && $disk->exists($path)) {
+                    $disk->delete($path);
+                }
             }
-            $payload['image_path'] = $request->file('image')->store('homepage-slides', 'public');
+
+            $variants = $this->images->storeHomepageSlideImageVariants($request->file('image'));
+            $payload['image_original_path'] = $variants['original_path'];
+            $payload['image_thumb_path'] = $variants['thumb_path'];
+            $payload['image_medium_path'] = $variants['medium_path'];
+            $payload['image_hero_path'] = $variants['hero_path'];
+            $payload['image_path'] = $variants['hero_path'];
         } else {
             unset($payload['image_path']);
         }
@@ -66,8 +92,17 @@ class HomepageSlideController extends Controller
 
     public function destroy(HomepageSlide $homepageSlide): RedirectResponse
     {
-        if ($homepageSlide->image_path && Storage::disk('public')->exists($homepageSlide->image_path)) {
-            Storage::disk('public')->delete($homepageSlide->image_path);
+        $disk = Storage::disk('public');
+        foreach ([
+            $homepageSlide->image_original_path,
+            $homepageSlide->image_thumb_path,
+            $homepageSlide->image_medium_path,
+            $homepageSlide->image_hero_path,
+            $homepageSlide->image_path,
+        ] as $path) {
+            if ($path && $disk->exists($path)) {
+                $disk->delete($path);
+            }
         }
 
         $homepageSlide->delete();

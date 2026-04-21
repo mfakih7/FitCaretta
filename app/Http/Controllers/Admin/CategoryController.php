@@ -45,7 +45,9 @@ class CategoryController extends Controller
                 $request->file('image'),
                 'categories/original',
                 'categories/thumb',
-                'categories/medium'
+                'categories/medium',
+                700,
+                1400
             );
             // keep legacy image_path populated (medium) for backwards compatibility
             $payload['image_path'] = $variants['medium_path'];
@@ -87,7 +89,9 @@ class CategoryController extends Controller
                 $request->file('image'),
                 'categories/original',
                 'categories/thumb',
-                'categories/medium'
+                'categories/medium',
+                700,
+                1400
             );
             $payload['image_path'] = $variants['medium_path'];
             $payload['image_thumb_path'] = $variants['thumb_path'];
