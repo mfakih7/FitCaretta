@@ -13,38 +13,34 @@
             @include('frontend.partials.filters')
         </div>
         <div class="col-lg-9">
-            <div class="d-lg-none mb-3">
-                <div class="fc-mobile-controls">
-                    <div class="fc-mobile-controls-left">
-                        <div class="small text-muted">{{ $products->total() }} products</div>
-                    </div>
-                    <div class="fc-mobile-controls-right">
-                        @php
-                            $sortVal = (string) request('sort', 'latest');
-                            $qs = request()->except(['sort', 'page']);
-                        @endphp
+            <div class="d-lg-none mt-2 mb-4">
+                @php
+                    $sortVal = (string) request('sort', 'latest');
+                    $qs = request()->except(['sort', 'page']);
+                @endphp
 
-                        <button class="fc-icon-btn fc-mobile-icon-btn"
+                <div class="">
+                    <div class="fc-mobile-toolbar" role="group" aria-label="Listing actions">
+                        <button class="fc-mobile-action"
                                 type="button"
                                 data-bs-toggle="offcanvas"
                                 data-bs-target="#fcFiltersCanvas"
                                 aria-controls="fcFiltersCanvas"
-                                aria-label="Filters"
-                                title="Filters">
+                                aria-label="Filters">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 5h18"></path>
                                 <path d="M7 12h10"></path>
                                 <path d="M10 19h4"></path>
                             </svg>
+                            <span>Filter</span>
                         </button>
 
-                        <div class="dropdown">
-                            <button class="fc-icon-btn fc-mobile-icon-btn @if($sortVal !== 'latest') is-active @endif"
+                        <div class="dropdown flex-grow-1">
+                            <button class="fc-mobile-action w-100 @if($sortVal !== 'latest') is-active @endif"
                                     type="button"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
-                                    aria-label="Sort"
-                                    title="Sort">
+                                    aria-label="Sort">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M10 6h10"></path>
                                     <path d="M10 12h7"></path>
@@ -52,6 +48,7 @@
                                     <path d="M4 7l2-2 2 2"></path>
                                     <path d="M6 5v14"></path>
                                 </svg>
+                                <span>Sort</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end fc-sort-menu fc-sort-menu-mobile">
                                 <li>

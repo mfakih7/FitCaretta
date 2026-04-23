@@ -1180,21 +1180,45 @@
             .fc-hero .fc-home-hero-sub{ font-size: 1rem; max-width: 520px; }
 
             /* Listing controls (mobile/tablet) */
-            .fc-mobile-controls{
+            .fc-mobile-toolbar{
                 display:flex;
-                align-items:center;
-                justify-content:space-between;
                 gap: 10px;
-                padding: 10px 12px;
-                border: 1px solid var(--fc-border);
-                border-radius: 14px;
-                background: #fff;
-                box-shadow: var(--fc-shadow-xs);
             }
-            .fc-mobile-controls-right{
+            .fc-mobile-action{
+                flex: 1 1 0;
+                min-height: 46px;
+                padding: 10px 14px;
+                border-radius: 16px;
+                border: 1px solid rgba(0,0,0,.10);
+                background: rgba(255,255,255,.96);
+                color: rgba(17,17,17,.92);
                 display:flex;
                 align-items:center;
-                gap: 8px;
+                justify-content:center;
+                gap: 10px;
+                font-weight: 650;
+                letter-spacing: .12px;
+                box-shadow: 0 10px 22px rgba(17,17,17,.05);
+                transition: background .14s ease, border-color .14s ease, transform .14s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .fc-mobile-action svg{
+                width: 18px;
+                height: 18px;
+                opacity: .78;
+            }
+            .fc-mobile-action:hover{
+                background: rgba(0,0,0,.02);
+                border-color: rgba(0,0,0,.16);
+                transform: translateY(-1px);
+            }
+            .fc-mobile-action.is-active{
+                border-color: rgba(0,0,0,.18);
+                background: rgba(0,0,0,.02);
+            }
+            .fc-mobile-action:focus-visible{
+                outline: 2px solid rgba(114,174,200,.45);
+                outline-offset: 2px;
             }
             .fc-mobile-sort-select{
                 min-width: 128px;
@@ -1210,12 +1234,16 @@
                 height: 40px;
                 border-radius: 999px;
                 background: #fff;
-                border: 1px solid var(--fc-border);
-                box-shadow: var(--fc-shadow-xs);
+                border: 1px solid rgba(0,0,0,.08);
+                box-shadow: none;
             }
             .fc-mobile-icon-btn:hover{
-                background: var(--fc-soft-bg);
-                border-color: var(--fc-border-strong);
+                background: rgba(0,0,0,.03);
+                border-color: rgba(0,0,0,.14);
+            }
+            .fc-mobile-icon-btn.is-active{
+                border-color: rgba(0,0,0,.18);
+                background: rgba(0,0,0,.03);
             }
             .fc-sort-menu-mobile{
                 min-width: 160px;
@@ -1301,6 +1329,96 @@
                 padding: 14px 0 22px;
             }
             .fc-footer-note{ text-align:left; }
+        }
+
+        /* Phone-only: premium toolbar + dropdown styling (stronger than old styles) */
+        @media (max-width: 575.98px){
+            .d-lg-none .fc-mobile-toolbar-wrap{
+                padding: 12px;
+                border-radius: 18px;
+                border: 1px solid rgba(17,17,17,.10);
+                background: rgba(250,250,250,.96);
+                box-shadow: 0 18px 40px rgba(17,17,17,.06);
+            }
+            .d-lg-none .fc-mobile-toolbar{
+                display:flex;
+                gap: 12px;
+            }
+            .d-lg-none .fc-mobile-toolbar .fc-mobile-action{
+                min-height: 58px;
+                padding: 14px 18px;
+                border-radius: 16px;
+                border: 1px solid rgba(17,17,17,.16);
+                background: linear-gradient(180deg, #ffffff, #fbfbfb);
+                box-shadow:
+                    0 16px 34px rgba(17,17,17,.08),
+                    0 2px 8px rgba(17,17,17,.04);
+                font-weight: 700;
+                letter-spacing: .12px;
+                gap: 10px;
+            }
+            .d-lg-none .fc-mobile-toolbar .fc-mobile-action svg{
+                width: 20px;
+                height: 20px;
+                opacity: .84;
+            }
+            .d-lg-none .fc-mobile-toolbar .fc-mobile-action:hover{
+                transform: translateY(-1px);
+                border-color: rgba(17,17,17,.22);
+            }
+            .d-lg-none .fc-mobile-toolbar .fc-mobile-action.is-active{
+                border-color: rgba(17,17,17,.26);
+                box-shadow:
+                    0 18px 40px rgba(17,17,17,.10),
+                    0 2px 10px rgba(17,17,17,.05);
+            }
+            .d-lg-none .fc-mobile-toolbar .fc-mobile-action:active{
+                transform: translateY(0);
+                box-shadow:
+                    0 10px 24px rgba(17,17,17,.08),
+                    0 1px 6px rgba(17,17,17,.04);
+            }
+
+            /* Sort dropdown (Bootstrap) — make it feel like the new action cards */
+            .d-lg-none .fc-sort-menu-mobile.dropdown-menu{
+                border-radius: 16px;
+                border: 1px solid rgba(17,17,17,.12);
+                box-shadow:
+                    0 22px 46px rgba(17,17,17,.12),
+                    0 6px 16px rgba(17,17,17,.06);
+                padding: 8px;
+                background: #fff;
+            }
+            /* Mobile: dropdown width must match Sort button */
+            .d-lg-none .fc-mobile-toolbar .dropdown{ position: relative; }
+            .d-lg-none .fc-mobile-toolbar .dropdown .dropdown-menu.fc-sort-menu-mobile{
+                width: 100%;
+                min-width: 100%;
+                left: 0;
+                right: auto;
+            }
+            .d-lg-none .fc-sort-menu-mobile .dropdown-item{
+                border-radius: 12px;
+                padding: 12px 12px;
+                font-weight: 600;
+                color: rgba(17,17,17,.88);
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap: 10px;
+            }
+            .d-lg-none .fc-sort-menu-mobile .dropdown-item + .dropdown-item{
+                margin-top: 4px;
+            }
+            .d-lg-none .fc-sort-menu-mobile .dropdown-item:hover{
+                background: rgba(0,0,0,.03);
+            }
+            .d-lg-none .fc-sort-menu-mobile .dropdown-item.active,
+            .d-lg-none .fc-sort-menu-mobile .dropdown-item:active{
+                background: rgba(0,0,0,.05);
+                color: rgba(17,17,17,.92);
+                box-shadow: inset 0 0 0 1px rgba(17,17,17,.10);
+            }
         }
 
         @media (max-width: 767.98px){
