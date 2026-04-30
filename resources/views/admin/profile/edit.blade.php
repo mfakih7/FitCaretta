@@ -10,6 +10,8 @@
         </div>
     </div>
 
+    @include('admin.partials.hosting-expiry-reminder')
+
     @php
         $brandRel = 'assets/brand';
         $faviconRel = $brandRel . '/favicon.png';

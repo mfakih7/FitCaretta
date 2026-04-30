@@ -10,6 +10,8 @@
         </div>
     </div>
 
+    @include('admin.partials.hosting-expiry-reminder')
+
     <form method="POST" action="{{ route('admin.settings.update') }}" class="d-flex flex-column gap-3">
         @csrf
         @method('PUT')
